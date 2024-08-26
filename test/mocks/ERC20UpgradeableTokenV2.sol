@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /// @custom:security-contact dev@codefox.co.jp
-contract ERC20UpgradeableToken is
+contract ERC20UpgradeableTokenV2 is
     Initializable,
     ERC20Upgradeable,
     ERC20BurnableUpgradeable,
@@ -85,5 +85,10 @@ contract ERC20UpgradeableToken is
         override(ERC20Upgradeable, ERC20PausableUpgradeable)
     {
         super._update(from, to, value);
+    }
+
+    /// @dev this is the added function in the v2 mock
+    function v2AddedFunction() public pure returns (string memory) {
+        return "v2AddedFunction";
     }
 }
