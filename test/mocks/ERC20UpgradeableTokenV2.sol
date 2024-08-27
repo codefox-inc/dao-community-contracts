@@ -2,93 +2,39 @@
 // Compatible with OpenZeppelin Contracts ^5.0.0
 pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "src/ERC20UpgradeableTokenV1.sol";
 
-/// @custom:security-contact dev@codefox.co.jp
-contract ERC20UpgradeableTokenV2 is
-    Initializable,
-    ERC20Upgradeable,
-    ERC20BurnableUpgradeable,
-    ERC20PausableUpgradeable,
-    AccessControlUpgradeable,
-    ERC20PermitUpgradeable,
-    UUPSUpgradeable
-{
-    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+/// @custom:oz-upgrades-from ERC20UpgradeableTokenV1
+contract ERC20UpgradeableTokenV2 is ERC20UpgradeableTokenV1 {
+    bytes32 public constant TREASURY_ROLE = keccak256("TREASURY_ROLE");
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
+    address private _treasury;
 
-    function initialize(
-        string memory name,
-        string memory symbol,
-        address defaultAdmin,
-        address pauser,
-        address minter,
-        address burner,
-        address upgrader
-    ) public initializer {
-        __ERC20_init(name, symbol);
-        __ERC20Burnable_init();
-        __ERC20Pausable_init();
-        __AccessControl_init();
-        __ERC20Permit_init(name);
-        __UUPSUpgradeable_init();
+    /// @dev Initializes the V2 version of the contract.
+    function initializeV2(address treasury, address newAdmin) public reinitializer(2) {
+        _grantRole(TREASURY_ROLE, treasury);
+        _treasury = treasury;
 
-        _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
-        _grantRole(PAUSER_ROLE, pauser);
-        _grantRole(MINTER_ROLE, minter);
-        _grantRole(MINTER_ROLE, burner);
-        _grantRole(UPGRADER_ROLE, upgrader);
-    }
-
-    function pause() public onlyRole(PAUSER_ROLE) {
-        _pause();
-    }
-
-    function unpause() public onlyRole(PAUSER_ROLE) {
-        _unpause();
-    }
-
-    function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
-        _mint(to, amount);
+        // If you need to change the administrator
+        _grantRole(DEFAULT_ADMIN_ROLE, newAdmin);
     }
 
     /**
-     * @notice Burns a specific amount of tokens from a specified account.
-     * @dev This function can only be called by accounts with the BURNER_ROLE.
-     * @dev added this function to the original contract
-     * @param account The address from which the tokens will be burned.
-     * @param amount The amount of tokens to burn.
+     * @notice Sets a new treasury address.
+     * @dev This function can only be called by accounts with the TREASURY_ROLE.
+     * @param newTreasury The new treasury address.
      */
-    function burnFrom(address account, uint256 amount) public override onlyRole(BURNER_ROLE) {
-        _burn(account, amount);
+    function setTreasury(address newTreasury) public onlyRole(TREASURY_ROLE) {
+        _treasury = newTreasury;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
-
-    // The following functions are overrides required by Solidity.
-
-    function _update(address from, address to, uint256 value)
-        internal
-        override(ERC20Upgradeable, ERC20PausableUpgradeable)
-    {
-        super._update(from, to, value);
+    /**
+     * @notice Retrieves the current treasury address.
+     * @return The current treasury address.
+     */
+    function getTreasury() public view returns (address) {
+        return _treasury;
     }
 
-    /// @dev this is the added function in the v2 mock
-    function v2AddedFunction() public pure returns (string memory) {
-        return "v2AddedFunction";
-    }
+    // Add more functions or override existing functionality as needed.
 }

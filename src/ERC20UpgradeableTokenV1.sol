@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /// @custom:security-contact dev@codefox.co.jp
-contract ERC20UpgradeableToken is
+contract ERC20UpgradeableTokenV1 is
     Initializable,
     ERC20Upgradeable,
     ERC20BurnableUpgradeable,
@@ -49,7 +49,7 @@ contract ERC20UpgradeableToken is
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(PAUSER_ROLE, pauser);
         _grantRole(MINTER_ROLE, minter);
-        _grantRole(MINTER_ROLE, burner);
+        _grantRole(BURNER_ROLE, burner);
         _grantRole(UPGRADER_ROLE, upgrader);
     }
 
@@ -72,7 +72,7 @@ contract ERC20UpgradeableToken is
      * @param account The address from which the tokens will be burned.
      * @param amount The amount of tokens to burn.
      */
-    function burnFrom(address account, uint256 amount) public override onlyRole(BURNER_ROLE) {
+    function burnByBurner(address account, uint256 amount) public onlyRole(BURNER_ROLE) {
         _burn(account, amount);
     }
 
