@@ -86,39 +86,6 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(token.balanceOf(holder), 1000 ether);
     }
 
-    // function testUpgradingToken() public {
-    //     // deploy the upgraded token contract using the OpenZeppelin Upgrades library
-    //     address proxy = Upgrades.upgradeUUPSProxy(
-    //         address(token),
-    //         "ERC20UpgradeableTokenV2.sol",
-    //         abi.encodeCall(
-    //             ERC20UpgradeableTokenV2.initialize, ("AMA coin", "AMA", admin, pauser, minter, burner, admin)
-    //         )
-    //     );
-    //     // show the address of the deployed proxy
-    //     console.log("Proxy deployed at:", proxy);
-
-    //     // initialize the upgraded token instance by using the proxy address
-    //     upgradedToken = ERC20UpgradeableTokenV2(proxy);
-
-    //     // check the token name and symbol
-    //     assertEq(upgradedToken.name(), "AMA coin");
-    //     assertEq(upgradedToken.symbol(), "AMA");
-
-    //     // check the total supply of the token
-    //     assertEq(upgradedToken.totalSupply(), 1000 ether);
-
-    //     // check the balance of the holder
-    //     assertEq(upgradedToken.balanceOf(holder), 1000 ether);
-
-    //     // check the roles of the token
-    //     assertEq(upgradedToken.hasRole(upgradedToken.DEFAULT_ADMIN_ROLE(), admin), true);
-    //     assertEq(upgradedToken.hasRole(upgradedToken.PAUSER_ROLE(), pauser), true);
-    //     assertEq(upgradedToken.hasRole(upgradedToken.MINTER_ROLE(), minter), true);
-    //     assertEq(upgradedToken.hasRole(upgradedToken.BURNER_ROLE(), burner), true);
-    //     assertEq(upgradedToken.hasRole(upgradedToken.UPGRADER_ROLE(), admin), true);
-    // }
-
     /**
      * @dev These are the normal test cases for an ERC20 token.
      */
@@ -128,6 +95,7 @@ contract ERC20UpgradeableTokenV1Test is Test {
     ///
     /// test basic token setups
     ///
+
     function testShowingBasicTokenInfo() public view {
         assertEq(token.name(), "AMA coin");
         assertEq(token.symbol(), "AMA");
