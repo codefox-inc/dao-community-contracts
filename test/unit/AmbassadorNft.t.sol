@@ -210,8 +210,6 @@ contract AmbassadorTest is Test {
         accounts[1] = user2;
 
         uint256[] memory balances = ambassadorNft.balanceOfBatch(accounts, ids);
-        string memory arrayString = arrayToString(balances);
-        console.log(arrayString);
 
         assertEq(balances[0], 1);
         assertEq(balances[1], 1);
