@@ -92,10 +92,10 @@ contract ERC20UpgradeableTokenV1Test is Test {
     ///////////////////////////////////////////////////
     ///////////// ERC20 NORMAL TEST CASES /////////////
     ///////////////////////////////////////////////////
+
     ///
     /// test basic token setups
     ///
-
     function testShowingBasicTokenInfo() public view {
         assertEq(token.name(), "AMA coin");
         assertEq(token.symbol(), "AMA");
@@ -113,15 +113,35 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(token.hasRole(token.UPGRADER_ROLE(), admin), true);
     }
 
+    ///
+    /// test granting roles
+    ///
+    function testGrantRoles() public {
+        console.log("admin has role:", token.hasRole(token.DEFAULT_ADMIN_ROLE(), admin));
+        vm.startPrank(admin);
+        token.grantRole(token.PAUSER_ROLE(), user);
+        assertEq(token.hasRole(token.PAUSER_ROLE(), user), true);
+        vm.stopPrank();
+    }
+
+    function testGrantingAndRevokingRoles() public {
+        vm.startPrank(admin);
+        token.grantRole(token.PAUSER_ROLE(), user);
+        assertEq(token.hasRole(token.PAUSER_ROLE(), user), true);
+        token.revokeRole(token.PAUSER_ROLE(), user);
+        assertEq(token.hasRole(token.PAUSER_ROLE(), user), false);
+        vm.stopPrank();
+    }
+
+    ///
+    /// test approving and spending
+    ///
     function testApprovingSpending() public {
         vm.prank(holder);
         token.approve(user, 100 ether);
         assertEq(token.allowance(holder, user), 100 ether);
     }
 
-    ///
-    /// test approving and spending
-    ///
     function testApprovingAndTrasnferFrom() public {
         vm.prank(holder);
         token.approve(user, 100 ether);
