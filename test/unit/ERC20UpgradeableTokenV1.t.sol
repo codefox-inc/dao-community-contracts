@@ -223,5 +223,6 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(upgradedToken.hasRole(upgradedToken.UPGRADER_ROLE(), admin), true);
         assertEq(upgradedToken.hasRole(upgradedToken.TREASURY_ROLE(), treasuryAddr), true);
         assertEq(upgradedToken.getTreasury(), treasuryAddr);
+        console.log("treasuryAddr: ", treasuryAddr);
     }
 }
