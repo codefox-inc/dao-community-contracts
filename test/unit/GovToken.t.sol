@@ -29,8 +29,8 @@ contract GovTokenTest is Test {
 
         // mint some token for user
         vm.startPrank(minter);
-        govToken.mint(user, 1000 ether);
-        govToken.mint(user2, 1000 ether);
+        govToken.mint(user, 100 ether);
+        govToken.mint(user2, 100 ether);
         vm.stopPrank();
     }
 
@@ -39,19 +39,27 @@ contract GovTokenTest is Test {
     /////////////////////////////////////////////////
     function testTokensAreNotTransferrable() public {
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 1000 ether);
+        assertEq(govToken.balanceOf(user), 100 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 1000 ether);
+        assertEq(govToken.balanceOf(user2), 100 ether);
 
         // try to transfer the token from user to user2
+        vm.prank(user2);
         vm.expectRevert(GovToken.TokenTransferNotAllowed.selector);
-        govToken.transfer(user2, 100 ether);
+        govToken.transfer(user, 20 ether);
+        vm.prank(user);
+        vm.expectRevert(GovToken.TokenTransferNotAllowed.selector);
+        govToken.transfer(user2, 10 ether);
+
+        // anyone with no balance cannot call the transfer function either
+        vm.expectRevert(GovToken.TokenTransferNotAllowed.selector);
+        govToken.transfer(admin, 10 ether);
 
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 1000 ether);
+        assertEq(govToken.balanceOf(user), 100 ether);
 
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 1000 ether);
+        assertEq(govToken.balanceOf(user2), 100 ether);
         console.log("user balance: ", govToken.balanceOf(user));
         console.log("user 2 balance: ", govToken.balanceOf(user2));
     }
@@ -61,9 +69,9 @@ contract GovTokenTest is Test {
     ///
     function testMintingCanBeDoneByMinter() public {
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 1000 ether);
+        assertEq(govToken.balanceOf(user), 100 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 1000 ether);
+        assertEq(govToken.balanceOf(user2), 100 ether);
 
         // mint some token for user
         vm.startPrank(minter);
@@ -72,18 +80,18 @@ contract GovTokenTest is Test {
         vm.stopPrank();
 
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 1100 ether);
+        assertEq(govToken.balanceOf(user), 200 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 1000 ether);
+        assertEq(govToken.balanceOf(user2), 100 ether);
         // check the balance of the user3
         assertEq(govToken.balanceOf(user3), 1 ether);
     }
 
     function testMintingCannotBeDoneByNonMinter() public {
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 1000 ether);
+        assertEq(govToken.balanceOf(user), 100 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 1000 ether);
+        assertEq(govToken.balanceOf(user2), 100 ether);
 
         // mint some token for user
         vm.expectRevert();
@@ -92,18 +100,18 @@ contract GovTokenTest is Test {
         govToken.mint(user3, 1 ether);
 
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 1000 ether);
+        assertEq(govToken.balanceOf(user), 100 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 1000 ether);
+        assertEq(govToken.balanceOf(user2), 100 ether);
         // check the balance of the user3
         assertEq(govToken.balanceOf(user3), 0 ether);
     }
 
     function testMintingCanBeDoneByNewMinter() public {
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 1000 ether);
+        assertEq(govToken.balanceOf(user), 100 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 1000 ether);
+        assertEq(govToken.balanceOf(user2), 100 ether);
 
         // mint some token for user
         vm.startPrank(admin);
@@ -117,50 +125,50 @@ contract GovTokenTest is Test {
         vm.stopPrank();
 
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 1100 ether);
+        assertEq(govToken.balanceOf(user), 200 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 1000 ether);
+        assertEq(govToken.balanceOf(user2), 100 ether);
         // check the balance of the user3
         assertEq(govToken.balanceOf(user3), 1 ether);
     }
 
     function testBurningCanBeDoneByBurner() public {
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 1000 ether);
+        assertEq(govToken.balanceOf(user), 100 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 1000 ether);
+        assertEq(govToken.balanceOf(user2), 100 ether);
 
         // burn some token for user
         vm.startPrank(burner);
-        govToken.burnByBurner(user, 100 ether);
-        govToken.burnByBurner(user2, 100 ether);
+        govToken.burnByBurner(user, 10 ether);
+        govToken.burnByBurner(user2, 10 ether);
         vm.stopPrank();
 
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 900 ether);
+        assertEq(govToken.balanceOf(user), 90 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 900 ether);
+        assertEq(govToken.balanceOf(user2), 90 ether);
     }
 
     function testBurningCannotBeDoneByNonBurner() public {
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 1000 ether);
+        assertEq(govToken.balanceOf(user), 100 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 1000 ether);
+        assertEq(govToken.balanceOf(user2), 100 ether);
 
         vm.expectRevert();
         vm.prank(user);
-        govToken.burnByBurner(user2, 100 ether);
+        govToken.burnByBurner(user2, 10 ether);
         vm.expectRevert();
         vm.prank(user2);
-        govToken.burnByBurner(user, 100 ether);
+        govToken.burnByBurner(user, 20 ether);
     }
 
     function testBurningCanBeDoneByNewBurner() public {
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 1000 ether);
+        assertEq(govToken.balanceOf(user), 100 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 1000 ether);
+        assertEq(govToken.balanceOf(user2), 100 ether);
 
         // burn some token for user
         vm.startPrank(admin);
@@ -169,14 +177,14 @@ contract GovTokenTest is Test {
 
         // burn some token for user
         vm.startPrank(user3);
-        govToken.burnByBurner(user, 100 ether);
-        govToken.burnByBurner(user2, 100 ether);
+        govToken.burnByBurner(user, 10 ether);
+        govToken.burnByBurner(user2, 10 ether);
         vm.stopPrank();
 
         // check the balance of the user
-        assertEq(govToken.balanceOf(user), 900 ether);
+        assertEq(govToken.balanceOf(user), 90 ether);
         // check the balance of the user2
-        assertEq(govToken.balanceOf(user2), 900 ether);
+        assertEq(govToken.balanceOf(user2), 90 ether);
     }
 
     /////////////////////////////////////////////////
