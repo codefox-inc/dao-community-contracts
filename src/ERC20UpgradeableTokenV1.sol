@@ -22,7 +22,7 @@ contract ERC20UpgradeableTokenV1 is
 {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    // bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -36,7 +36,7 @@ contract ERC20UpgradeableTokenV1 is
         address defaultAdmin,
         address pauser,
         address minter,
-        address burner,
+        // address burner,
         address upgrader
     ) public initializer {
         __ERC20_init(name, symbol);
@@ -49,7 +49,7 @@ contract ERC20UpgradeableTokenV1 is
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(PAUSER_ROLE, pauser);
         _grantRole(MINTER_ROLE, minter);
-        _grantRole(BURNER_ROLE, burner);
+        // _grantRole(BURNER_ROLE, burner);
         _grantRole(UPGRADER_ROLE, upgrader);
     }
 
@@ -69,12 +69,10 @@ contract ERC20UpgradeableTokenV1 is
      * @notice Burns a specific amount of tokens from a specified account.
      * @dev This function can only be called by accounts with the BURNER_ROLE.
      * @dev added this function to the original contract
-     * @param account The address from which the tokens will be burned.
-     * @param amount The amount of tokens to burn.
      */
-    function burnByBurner(address account, uint256 amount) public onlyRole(BURNER_ROLE) {
-        _burn(account, amount);
-    }
+    // function burnByBurner(address account, uint256 amount) public onlyRole(BURNER_ROLE) {
+    //     _burn(account, amount);
+    // }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
 

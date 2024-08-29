@@ -18,7 +18,7 @@ contract ERC20UpgradeableTokenV1Test is Test {
     address public admin = makeAddr("admin");
     address public pauser = makeAddr("pauser");
     address public minter = makeAddr("minter");
-    address public burner = makeAddr("burner");
+    // address public burner = makeAddr("burner");
 
     // users
     address public user = makeAddr("user");
@@ -28,9 +28,7 @@ contract ERC20UpgradeableTokenV1Test is Test {
         // deploy the upgradeable token contract using the OpenZeppelin Upgrades library
         proxy = Upgrades.deployUUPSProxy(
             "ERC20UpgradeableTokenV1.sol",
-            abi.encodeCall(
-                ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", admin, pauser, minter, burner, admin)
-            )
+            abi.encodeCall(ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", admin, pauser, minter, admin))
         );
 
         // UnsafeUpgrades method is used to deploy the UUPS in test environment not in production
@@ -60,31 +58,31 @@ contract ERC20UpgradeableTokenV1Test is Test {
     ////////////////////////////////////////////////////
     ///
     /// test burning the tokens
-    ///
-    function testSucceedingToBurnTokens() public {
-        vm.prank(burner);
-        token.burnByBurner(holder, 100 ether);
-        assertEq(token.balanceOf(holder), 900 ether);
-        vm.prank(burner);
-        token.burnByBurner(holder, 900 ether);
-        assertEq(token.balanceOf(holder), 0 ether);
-    }
+    // ///
+    // function testSucceedingToBurnTokens() public {
+    //     vm.prank(burner);
+    //     token.burnByBurner(holder, 100 ether);
+    //     assertEq(token.balanceOf(holder), 900 ether);
+    //     vm.prank(burner);
+    //     token.burnByBurner(holder, 900 ether);
+    //     assertEq(token.balanceOf(holder), 0 ether);
+    // }
 
-    function testFailingToBurnTokens() public {
-        vm.expectRevert();
-        vm.prank(holder);
-        token.burnByBurner(holder, 100 ether);
+    // function testFailingToBurnTokens() public {
+    //     vm.expectRevert();
+    //     vm.prank(holder);
+    //     token.burnByBurner(holder, 100 ether);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector, holder, token.BURNER_ROLE()
-            )
-        );
-        vm.prank(user);
-        token.burnByBurner(holder, 900 ether);
-        // check that no token was burned
-        assertEq(token.balanceOf(holder), 1000 ether);
-    }
+    //     vm.expectRevert(
+    //         abi.encodeWithSelector(
+    //             IAccessControl.AccessControlUnauthorizedAccount.selector, holder, token.BURNER_ROLE()
+    //         )
+    //     );
+    //     vm.prank(user);
+    //     token.burnByBurner(holder, 900 ether);
+    //     // check that no token was burned
+    //     assertEq(token.balanceOf(holder), 1000 ether);
+    // }
 
     /**
      * @dev These are the normal test cases for an ERC20 token.
@@ -107,9 +105,9 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(token.hasRole(token.DEFAULT_ADMIN_ROLE(), admin), true);
         assertEq(token.hasRole(token.PAUSER_ROLE(), pauser), true);
         assertEq(token.hasRole(token.MINTER_ROLE(), minter), true);
-        console.logBytes32(token.BURNER_ROLE());
-        console.log(burner);
-        assertEq(token.hasRole(token.BURNER_ROLE(), burner), true);
+        // console.logBytes32(token.BURNER_ROLE());
+        // console.log(burner);
+        // assertEq(token.hasRole(token.BURNER_ROLE(), burner), true);
         assertEq(token.hasRole(token.UPGRADER_ROLE(), admin), true);
     }
 
@@ -219,7 +217,7 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(upgradedToken.hasRole(upgradedToken.DEFAULT_ADMIN_ROLE(), admin), true);
         assertEq(upgradedToken.hasRole(upgradedToken.PAUSER_ROLE(), pauser), true);
         assertEq(upgradedToken.hasRole(upgradedToken.MINTER_ROLE(), minter), true);
-        assertEq(upgradedToken.hasRole(upgradedToken.BURNER_ROLE(), burner), true);
+        // assertEq(upgradedToken.hasRole(upgradedToken.BURNER_ROLE(), burner), true);
         assertEq(upgradedToken.hasRole(upgradedToken.UPGRADER_ROLE(), admin), true);
         assertEq(upgradedToken.hasRole(upgradedToken.TREASURY_ROLE(), treasuryAddr), true);
         assertEq(upgradedToken.getTreasury(), treasuryAddr);
