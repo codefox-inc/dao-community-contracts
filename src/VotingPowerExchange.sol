@@ -7,6 +7,8 @@ import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import {Arrays} from "@openzeppelin/contracts/utils/Arrays.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 interface IERC20UpgradeableTokenV1 {
     function mint(address account, uint256 amount) external;
@@ -17,6 +19,8 @@ interface IGovToken {
     function mint(address account, uint256 amount) external;
     function burnByBurner(address account, uint256 amount) external;
     function balanceOf(address account) external view returns (uint256);
+    function burnedAmountOfUtilToken(address account) external view returns (uint256);
+    function setBurnedAmountOfUtilToken(address account, uint256 amount) external;
 }
 
 /**
@@ -24,6 +28,7 @@ interface IGovToken {
  * @dev This contract allows users to exchange utilityToken(ERC20 token) for GovToken(voting power token).
  */
 contract VotingPowerExchange is Ownable, EIP712 {
+    using Arrays for uint256[];
     using SignatureChecker for address;
 
     error VotingPowerExchange__AmountIsZero();
@@ -31,22 +36,26 @@ contract VotingPowerExchange is Ownable, EIP712 {
     error VotingPowerExchange__AddressIsZero();
     error VotingPowerExchange__InvalidNonce();
     error VotingPowerExchange__InvalidSignature();
+    error VotingPowerExchange__LevelIsLowerThanExisting();
 
     event VotingPowerReceived(address indexed user, uint256 utilityTokenAmount, uint256 votingPowerAmount);
     event HighsetIdSet(uint256 highestId);
 
     // TODO: consider adding a nonce state variable
     mapping(address => mapping(bytes32 => bool)) internal _authorizationStates;
+    uint256 public levelCap = 100;
 
     // EIP-712 domain separator and type hash for the message
     bytes32 private constant _EXCHANGE_TYPEHASH = keccak256("Exchange(address sender,uint256 amount,bytes32 nonce)");
+    uint256 constant LEVEL_COUNT = 26;
+    uint256 constant TOKEN_DECIMALS = 1e18;
 
     IGovToken public immutable govToken;
     IERC20UpgradeableTokenV1 public immutable utilityToken;
     IERC1155 public immutable erc1155Contract;
 
     uint256 public highestAmbassadorTokenId; // erc1155 token id
-    mapping(address user => uint256 burnedAmount) public burnedAmount;
+    // mapping(address user => uint256 burnedAmount) public burnedAmount;
 
     constructor(
         IGovToken _govToken,
@@ -60,28 +69,40 @@ contract VotingPowerExchange is Ownable, EIP712 {
         _setHighestAmbassadorTokenId(_highestTokenId);
     }
 
+    /**
+     * @notice Exchanges utilityToken for voting power token using sender's signature to check the intention of the user.
+     * @dev The main function of this contract.
+     * @dev The user must sign the exchange message with the sender address, amount and nonce.
+     * @dev Using EIP-712 to validate the signature.
+     * @param sender The address of the user who wants to exchange utilityToken for voting power token.
+     * @param amount The amount of utilityToken to exchange.
+     * @param nonce The nonce to prevent replay attacks.
+     * @param signature The signature of the user to validate the exchange intention.
+     */
     // TODO: change and check the exchange rate calculation of the voting power exchange
-    // TODO: consider adding a nonce to avoid replay attacks
     function exchange(address sender, uint256 amount, bytes32 nonce, bytes calldata signature) external onlyOwner {
         if (sender == address(0)) revert VotingPowerExchange__AddressIsZero();
         if (amount == 0) revert VotingPowerExchange__AmountIsZero();
         if (authorizationState(sender, nonce)) revert VotingPowerExchange__InvalidNonce();
 
-        // Create the digest for EIP-712
+        // Create the digest for EIP-712 and validate the signature by the `sender`
         bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(_EXCHANGE_TYPEHASH, sender, amount, nonce)));
-        // validate the signature of the user
         if (!sender.isValidSignatureNow(digest, signature)) revert VotingPowerExchange__InvalidSignature();
 
         // set the nonce as true after validating the signature
         _authorizationStates[sender][nonce] = true;
 
+        uint256 currentBurnedAmount = govToken.burnedAmountOfUtilToken(sender);
+        // Calculate the amount of voting pwoer token amount to mint
+        uint256 votingPowerAmountToMint =
+            (Math.sqrt(currentBurnedAmount + amount) - Math.sqrt(currentBurnedAmount)) * 1e9;
+        // TODO: votingPower/10 = level?
+
+        // burn utilityToken from the `sender`
         utilityToken.burnByBurner(msg.sender, amount);
 
-        uint256 currentBurnedAmount = burnedAmount[sender];
-        // Calculate the amount of voting pwoer token amount to mint
-        uint256 votingPowerAmountToMint = (sqrt(currentBurnedAmount + amount) - sqrt(currentBurnedAmount)) / 10;
-        // update the burned amount of the user
-        burnedAmount[sender] = currentBurnedAmount + amount;
+        // update the burned amount of the `sender`
+        govToken.setBurnedAmountOfUtilToken(sender, currentBurnedAmount + amount);
 
         // mint govToken to the user and emit event
         govToken.mint(sender, votingPowerAmountToMint);
@@ -90,6 +111,11 @@ contract VotingPowerExchange is Ownable, EIP712 {
 
     function setHighestAmbassadorTokenId(uint256 _highestAmbassadorTokenId) external onlyOwner {
         _setHighestAmbassadorTokenId(_highestAmbassadorTokenId);
+    }
+
+    function setLevelCap(uint256 _levelCap) external onlyOwner {
+        if (_levelCap < levelCap) revert VotingPowerExchange__LevelIsLowerThanExisting();
+        levelCap = _levelCap;
     }
 
     /**
@@ -111,25 +137,11 @@ contract VotingPowerExchange is Ownable, EIP712 {
         }
     }
 
+    /// @notice Check the authorizer's nonce is used or not.
+    /// @dev This function reads the mapping `_authorizationStates`.
+    /// @return A bool to show if the nonce is used.
     function authorizationState(address authorizer, bytes32 nonce) public view returns (bool) {
         return _authorizationStates[authorizer][nonce];
-    }
-
-    // TODO: change this to implementation of OpenZeppelin's Babylonian method??
-    /**
-     * @dev Computes the square root of a given number using the Babylonian method.
-     * @param x The number to compute the square root of.
-     * @return The square root of the input number.
-     */
-    function sqrt(uint256 x) internal pure returns (uint256) {
-        if (x == 0) return 0;
-        uint256 z = (x + 1) / 2;
-        uint256 y = x;
-        while (z < y) {
-            y = z;
-            z = (x / z + z) / 2;
-        }
-        return y;
     }
 
     function _setHighestAmbassadorTokenId(uint256 _highestAmbassadorTokenId) internal {

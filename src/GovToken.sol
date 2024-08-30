@@ -14,14 +14,24 @@ contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vote
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    bytes32 public constant VOTING_POWER_EXCHANGE_ROLE = keccak256("VOTING_POWER_EXCHANGE_ROLE");
 
-    constructor(string memory name, string memory symbol, address defaultAdmin, address minter, address burner)
-        ERC20(name, symbol)
-        ERC20Permit(name)
-    {
+    // added for recording the amount of utility tokens burned by a specific account
+    mapping(address user => uint256 burnedAmount) public burnedAmountOfUtilToken;
+
+    constructor(
+        string memory name,
+        string memory symbol,
+        address defaultAdmin,
+        address minter,
+        address burner,
+        address votingPowerExchange
+    ) ERC20(name, symbol) ERC20Permit(name) {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(MINTER_ROLE, minter);
         _grantRole(BURNER_ROLE, burner);
+        _grantRole(BURNER_ROLE, burner);
+        _grantRole(VOTING_POWER_EXCHANGE_ROLE, votingPowerExchange);
     }
 
     // The following functions are overrides required by Solidity.
@@ -51,6 +61,19 @@ contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vote
 
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
         _mint(to, amount);
+    }
+
+    /**
+     * @notice Sets the amount of utility tokens burned by a specific account.
+     * @dev added this function to the original contract
+     * @param account The account for which the burned amount is set.
+     * @param amount The amount of utility tokens burned.
+     */
+    function setBurnedAmountOfUtilToken(address account, uint256 amount)
+        external
+        onlyRole(VOTING_POWER_EXCHANGE_ROLE)
+    {
+        burnedAmountOfUtilToken[account] = amount;
     }
 
     function clock() public view override returns (uint48) {
