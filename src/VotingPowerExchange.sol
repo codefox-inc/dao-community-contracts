@@ -4,10 +4,10 @@ pragma solidity 0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+
 import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import {Arrays} from "@openzeppelin/contracts/utils/Arrays.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IGovToken} from "./Interfaces.sol";
 import {IERC20UpgradeableTokenV1} from "./Interfaces.sol";
@@ -17,7 +17,7 @@ import {IERC20UpgradeableTokenV1} from "./Interfaces.sol";
  * @dev This contract allows users to exchange utilityToken(ERC20 token) for GovToken(voting power token).
  * @custom:security-contact dev@codefox.co.jp
  */
-contract VotingPowerExchange is Ownable, EIP712 {
+contract VotingPowerExchange is AccessControl, EIP712 {
     using SignatureChecker for address;
 
     error VotingPowerExchange__AmountIsZero();
@@ -36,6 +36,9 @@ contract VotingPowerExchange is Ownable, EIP712 {
     bytes32 private constant _EXCHANGE_TYPEHASH =
         keccak256("Exchange(address sender,uint256 amount,bytes32 nonce,uint256 expiration)");
 
+    // Roles for the contract. Default admin holds the highest authority to to set the manager and exchanger.
+    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+    bytes32 public constant EXCHANGER_ROLE = keccak256("EXCHANGER_ROLE");
     // PRICISION values for the calculation
     uint256 private constant PRICISION_FIX = 1e9;
     uint256 private constant PRICISION_FACTOR = 10;
@@ -48,12 +51,18 @@ contract VotingPowerExchange is Ownable, EIP712 {
     mapping(address => mapping(bytes32 => bool)) private _authorizationStates;
     uint256 private votingPowerCap;
 
-    constructor(IGovToken _govToken, IERC20UpgradeableTokenV1 _utilityToken)
-        Ownable(msg.sender)
-        EIP712("VotingPowerExchange", "1")
-    {
+    constructor(
+        IGovToken _govToken,
+        IERC20UpgradeableTokenV1 _utilityToken,
+        address defaultAdmin,
+        address manager,
+        address exchanger
+    ) EIP712("VotingPowerExchange", "1") {
         govToken = _govToken;
         utilityToken = _utilityToken;
+        _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
+        _grantRole(MANAGER_ROLE, manager);
+        _grantRole(EXCHANGER_ROLE, exchanger);
         _setLevelCap(100);
     }
 
@@ -72,10 +81,9 @@ contract VotingPowerExchange is Ownable, EIP712 {
      * @param nonce The nonce to prevent replay attacks.
      * @param signature The signature of the user to validate the exchange intention.
      */
-    // TODO: check the level cap and handle the burning amount
     function exchange(address sender, uint256 amount, bytes32 nonce, uint256 expiration, bytes calldata signature)
         external
-        onlyOwner
+        onlyRole(EXCHANGER_ROLE)
     {
         if (sender == address(0)) revert VotingPowerExchange__AddressIsZero();
         if (amount == 0) revert VotingPowerExchange__AmountIsZero();
@@ -116,7 +124,7 @@ contract VotingPowerExchange is Ownable, EIP712 {
         emit VotingPowerReceived(msg.sender, burningTokenAmount, increasedVotingPower);
     }
 
-    function setLevelCap(uint256 _votingPowerCap) external onlyOwner {
+    function setLevelCap(uint256 _votingPowerCap) external onlyRole(MANAGER_ROLE) {
         if (_votingPowerCap < votingPowerCap) revert VotingPowerExchange__LevelIsLowerThanExisting();
         _setLevelCap(_votingPowerCap);
     }
@@ -131,14 +139,13 @@ contract VotingPowerExchange is Ownable, EIP712 {
     ////////////////////////////////////////////
     /////// Internal & Private functions ///////
     ////////////////////////////////////////////
-    function _setLevelCap(uint256 _votingPowerCap) internal onlyOwner {
+    function _setLevelCap(uint256 _votingPowerCap) internal {
         votingPowerCap = _votingPowerCap;
     }
 
     ////////////////////////////////////
     /////// pure/view functions ////////
     ////////////////////////////////////
-
     function calculateIncreasedVotingPower(uint256 amount, uint256 currentBurnedAmount) public pure returns (uint256) {
         uint256 increasedVotingPower = (
             Math.sqrt((currentBurnedAmount + amount) * PRICISION) - Math.sqrt(currentBurnedAmount * PRICISION)
