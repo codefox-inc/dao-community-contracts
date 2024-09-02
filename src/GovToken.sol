@@ -17,7 +17,7 @@ contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vote
     bytes32 public constant VOTING_POWER_EXCHANGE_ROLE = keccak256("VOTING_POWER_EXCHANGE_ROLE");
 
     // added for recording the amount of utility tokens burned by a specific account
-    mapping(address user => uint256 burnedAmount) public burnedAmountOfUtilToken;
+    mapping(address account => uint256 burnedAmount) public burnedAmountOfUtilToken;
 
     constructor(
         string memory name,

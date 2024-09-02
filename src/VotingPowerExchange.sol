@@ -9,68 +9,61 @@ import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/Signa
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {Arrays} from "@openzeppelin/contracts/utils/Arrays.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-
-interface IERC20UpgradeableTokenV1 {
-    function mint(address account, uint256 amount) external;
-    function burnByBurner(address account, uint256 amount) external;
-}
-
-interface IGovToken {
-    function mint(address account, uint256 amount) external;
-    function burnByBurner(address account, uint256 amount) external;
-    function balanceOf(address account) external view returns (uint256);
-    function burnedAmountOfUtilToken(address account) external view returns (uint256);
-    function setBurnedAmountOfUtilToken(address account, uint256 amount) external;
-}
+import {IGovToken} from "./Interfaces.sol";
+import {IERC20UpgradeableTokenV1} from "./Interfaces.sol";
 
 /**
  * @title VotingPowerExchange
  * @dev This contract allows users to exchange utilityToken(ERC20 token) for GovToken(voting power token).
+ * @custom:security-contact dev@codefox.co.jp
  */
 contract VotingPowerExchange is Ownable, EIP712 {
-    using Arrays for uint256[];
     using SignatureChecker for address;
 
     error VotingPowerExchange__AmountIsZero();
     error VotingPowerExchange__HighestIdIsTooHigh();
     error VotingPowerExchange__AddressIsZero();
     error VotingPowerExchange__InvalidNonce();
+    error VotingPowerExchange__SignatureExpired();
     error VotingPowerExchange__InvalidSignature();
     error VotingPowerExchange__LevelIsLowerThanExisting();
+    error VotingPowerExchange__LevelIsHigherThanCap();
 
     event VotingPowerReceived(address indexed user, uint256 utilityTokenAmount, uint256 votingPowerAmount);
     event HighsetIdSet(uint256 highestId);
 
-    // TODO: consider adding a nonce state variable
-    mapping(address => mapping(bytes32 => bool)) internal _authorizationStates;
-    uint256 public levelCap = 100;
-
     // EIP-712 domain separator and type hash for the message
-    bytes32 private constant _EXCHANGE_TYPEHASH = keccak256("Exchange(address sender,uint256 amount,bytes32 nonce)");
-    uint256 constant LEVEL_COUNT = 26;
-    uint256 constant TOKEN_DECIMALS = 1e18;
+    bytes32 private constant _EXCHANGE_TYPEHASH =
+        keccak256("Exchange(address sender,uint256 amount,bytes32 nonce,uint256 expiration)");
 
-    IGovToken public immutable govToken;
-    IERC20UpgradeableTokenV1 public immutable utilityToken;
-    IERC1155 public immutable erc1155Contract;
+    // PRICISION values for the calculation
+    uint256 private constant PRICISION_FIX = 1e9;
+    uint256 private constant PRICISION_FACTOR = 10;
+    uint256 private constant PRICISION = 1e18;
 
-    uint256 public highestAmbassadorTokenId; // erc1155 token id
-    // mapping(address user => uint256 burnedAmount) public burnedAmount;
+    // token instances
+    IGovToken private immutable govToken;
+    IERC20UpgradeableTokenV1 private immutable utilityToken;
 
-    constructor(
-        IGovToken _govToken,
-        IERC20UpgradeableTokenV1 _utilityToken,
-        IERC1155 _erc1155Contract,
-        uint256 _highestTokenId // highest ambassador token id is 3 initially
-    ) Ownable(msg.sender) EIP712("VotingPowerExchange", "1") {
+    mapping(address => mapping(bytes32 => bool)) private _authorizationStates;
+    uint256 private votingPowerCap;
+
+    constructor(IGovToken _govToken, IERC20UpgradeableTokenV1 _utilityToken)
+        Ownable(msg.sender)
+        EIP712("VotingPowerExchange", "1")
+    {
         govToken = _govToken;
         utilityToken = _utilityToken;
-        erc1155Contract = _erc1155Contract;
-        _setHighestAmbassadorTokenId(_highestTokenId);
+        _setLevelCap(100);
     }
 
+    ////////////////////////////////////////////
+    /////// External & Public functions ////////
+    ////////////////////////////////////////////
     /**
-     * @notice Exchanges utilityToken for voting power token using sender's signature to check the intention of the user.
+     * @notice Exchanges utility token for voting power token using sender's signature to check the intention of the user.
+     * @notice Increased level means the amount of voting power token to mint.
+     * @notice The level is equal to the minted token amount onchian. The real voting power when people vote can be different through some off-chain handling.
      * @dev The main function of this contract.
      * @dev The user must sign the exchange message with the sender address, amount and nonce.
      * @dev Using EIP-712 to validate the signature.
@@ -79,62 +72,53 @@ contract VotingPowerExchange is Ownable, EIP712 {
      * @param nonce The nonce to prevent replay attacks.
      * @param signature The signature of the user to validate the exchange intention.
      */
-    // TODO: change and check the exchange rate calculation of the voting power exchange
-    function exchange(address sender, uint256 amount, bytes32 nonce, bytes calldata signature) external onlyOwner {
+    // TODO: check the level cap and handle the burning amount
+    function exchange(address sender, uint256 amount, bytes32 nonce, uint256 expiration, bytes calldata signature)
+        external
+        onlyOwner
+    {
         if (sender == address(0)) revert VotingPowerExchange__AddressIsZero();
         if (amount == 0) revert VotingPowerExchange__AmountIsZero();
         if (authorizationState(sender, nonce)) revert VotingPowerExchange__InvalidNonce();
+        if (block.timestamp > expiration) revert VotingPowerExchange__SignatureExpired();
+        // check the current gove token balance of the sender
+        uint256 currentVotingPower = govToken.balanceOf(sender);
+        if (currentVotingPower >= votingPowerCap) revert VotingPowerExchange__LevelIsHigherThanCap();
 
         // Create the digest for EIP-712 and validate the signature by the `sender`
-        bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(_EXCHANGE_TYPEHASH, sender, amount, nonce)));
+        bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(_EXCHANGE_TYPEHASH, sender, amount, nonce, expiration)));
         if (!sender.isValidSignatureNow(digest, signature)) revert VotingPowerExchange__InvalidSignature();
 
         // set the nonce as true after validating the signature
         _authorizationStates[sender][nonce] = true;
 
         uint256 currentBurnedAmount = govToken.burnedAmountOfUtilToken(sender);
-        // Calculate the amount of voting pwoer token amount to mint
-        uint256 votingPowerAmountToMint =
-            (Math.sqrt(currentBurnedAmount + amount) - Math.sqrt(currentBurnedAmount)) * 1e9;
-        // TODO: votingPower/10 = level?
+
+        // Calculate the amount of voting power token amount to mint
+        // increased level = increased token amount of govToken
+        uint256 increasedVotingPower = calculateIncreasedVotingPower(amount, currentBurnedAmount);
+
+        uint256 burningTokenAmount = amount;
+        // check the level cap to make sure it can only reach the cap but not to be over it
+        if (currentVotingPower + increasedVotingPower > votingPowerCap) {
+            increasedVotingPower = votingPowerCap - currentVotingPower;
+            burningTokenAmount = calculateRequiredAmountTobeBurned(increasedVotingPower, currentBurnedAmount);
+        }
 
         // burn utilityToken from the `sender`
-        utilityToken.burnByBurner(msg.sender, amount);
+        utilityToken.burnByBurner(msg.sender, burningTokenAmount);
 
         // update the burned amount of the `sender`
-        govToken.setBurnedAmountOfUtilToken(sender, currentBurnedAmount + amount);
+        govToken.setBurnedAmountOfUtilToken(sender, currentBurnedAmount + burningTokenAmount);
 
         // mint govToken to the user and emit event
-        govToken.mint(sender, votingPowerAmountToMint);
-        emit VotingPowerReceived(msg.sender, amount, votingPowerAmountToMint);
+        govToken.mint(sender, increasedVotingPower);
+        emit VotingPowerReceived(msg.sender, burningTokenAmount, increasedVotingPower);
     }
 
-    function setHighestAmbassadorTokenId(uint256 _highestAmbassadorTokenId) external onlyOwner {
-        _setHighestAmbassadorTokenId(_highestAmbassadorTokenId);
-    }
-
-    function setLevelCap(uint256 _levelCap) external onlyOwner {
-        if (_levelCap < levelCap) revert VotingPowerExchange__LevelIsLowerThanExisting();
-        levelCap = _levelCap;
-    }
-
-    /**
-     * @notice Returns the highest ERC1155 token ID held by a user.
-     * @param user The address of the user.
-     * @return highestId The highest ERC1155 token ID held by the user.
-     */
-    function getHighestERC1155TokenId(address user) public view returns (uint256 highestId) {
-        // Iterate through a predefined range to find the highest token ID
-        // In a real implementation, this range should be based on the actual token IDs that are mintable
-        uint256 currentHighestId = highestId;
-        for (uint256 i; i <= currentHighestId;) {
-            if (erc1155Contract.balanceOf(user, i) > 0) {
-                highestId = i;
-            }
-            unchecked {
-                ++i;
-            }
-        }
+    function setLevelCap(uint256 _votingPowerCap) external onlyOwner {
+        if (_votingPowerCap < votingPowerCap) revert VotingPowerExchange__LevelIsLowerThanExisting();
+        _setLevelCap(_votingPowerCap);
     }
 
     /// @notice Check the authorizer's nonce is used or not.
@@ -144,9 +128,71 @@ contract VotingPowerExchange is Ownable, EIP712 {
         return _authorizationStates[authorizer][nonce];
     }
 
-    function _setHighestAmbassadorTokenId(uint256 _highestAmbassadorTokenId) internal {
-        if (_highestAmbassadorTokenId > 10) revert VotingPowerExchange__HighestIdIsTooHigh();
-        highestAmbassadorTokenId = _highestAmbassadorTokenId;
-        emit HighsetIdSet(_highestAmbassadorTokenId);
+    ////////////////////////////////////////////
+    /////// Internal & Private functions ///////
+    ////////////////////////////////////////////
+    function _setLevelCap(uint256 _votingPowerCap) internal onlyOwner {
+        votingPowerCap = _votingPowerCap;
+    }
+
+    ////////////////////////////////////
+    /////// pure/view functions ////////
+    ////////////////////////////////////
+
+    function calculateIncreasedVotingPower(uint256 amount, uint256 currentBurnedAmount) public pure returns (uint256) {
+        uint256 increasedVotingPower = (
+            Math.sqrt((currentBurnedAmount + amount) * PRICISION) - Math.sqrt(currentBurnedAmount * PRICISION)
+        ) / PRICISION_FACTOR;
+        return increasedVotingPower;
+    }
+
+    /**
+     * @notice Calculate the amount of tokens to burn (amount) to achieve the desired increased level
+     * @param increasedLevel The desired increased level
+     * @param currentBurnedAmount The current burned amount of the user
+     * @return amount The amount of tokens to be burned
+     */
+    function calculateRequiredAmountTobeBurned(uint256 increasedLevel, uint256 currentBurnedAmount)
+        public
+        pure
+        returns (uint256)
+    {
+        // calculate sqrt(currentBurnedAmount * PRICISION)
+        uint256 sqrtCurrent = Math.sqrt(currentBurnedAmount * PRICISION);
+        // calculate increasedLevel * PRICISION_FACTOR
+        uint256 levelWithPrecision = increasedLevel * PRICISION_FACTOR;
+        // calculate new sqrt
+        uint256 sqrtNew = sqrtCurrent + levelWithPrecision;
+        // calculate new sqrt's power 2 and set its pricision as 18
+        uint256 sqrtNewSquared = (sqrtNew * sqrtNew) / PRICISION;
+        // calculate the final amount
+        uint256 amount = sqrtNewSquared - currentBurnedAmount;
+        return amount;
+    }
+
+    function getVotingPowerCap() external view returns (uint256) {
+        return votingPowerCap;
+    }
+
+    /**
+     * @notice returns all the immutable and constant addresses and values
+     * @dev This function is for convenience to check the addresses and values
+     */
+    function getConstants()
+        external
+        pure
+        returns (bytes32 __EXCHANGE_TYPEHASH, uint256 _PRICISION_FIX, uint256 _PRICISION_FACTOR, uint256 _PRICISION)
+    {
+        /* solhint-disable */
+        __EXCHANGE_TYPEHASH = _EXCHANGE_TYPEHASH;
+        _PRICISION_FIX = PRICISION_FIX;
+        _PRICISION_FACTOR = PRICISION_FACTOR;
+        _PRICISION = PRICISION;
+        /* solhint-enable */
+    }
+
+    function getTokenAddresses() external view returns (address _utilityToken, address _govToken) {
+        _utilityToken = address(utilityToken);
+        _govToken = address(govToken);
     }
 }

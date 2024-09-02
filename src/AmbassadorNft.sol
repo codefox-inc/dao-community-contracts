@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 
+/// @custom:security-contact dev@codefox.co.jp
 // Made by OpenZeppelin Contracts Wizard: https://zpl.in/wizard
 contract AmbassadorNft is ERC1155, AccessControl, ERC1155Burnable {
     bytes32 public constant URI_SETTER_ROLE = keccak256("URI_SETTER_ROLE");
