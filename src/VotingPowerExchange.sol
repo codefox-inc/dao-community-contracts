@@ -21,6 +21,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     using SignatureChecker for address;
 
     // Errors
+    error VotingPowerExchange__DefaultAdminCannotBeZero();
     error VotingPowerExchange__AmountIsZero();
     error VotingPowerExchange__HighestIdIsTooHigh();
     error VotingPowerExchange__AddressIsZero();
@@ -52,7 +53,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
 
     // mapping to store the nonce of the user
     mapping(address => mapping(bytes32 => bool)) private _authorizationStates;
-    // voting power cap
+    // voting power cap for limiting the voting power
     uint256 private votingPowerCap;
 
     /// constructor function of the contract.
@@ -61,15 +62,12 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     /// @param defaultAdmin The address of the default admin
     /// @param manager The address of the manager
     /// @param exchanger The address of the exchanger
-    constructor(
-        IGovToken _govToken,
-        IERC20UpgradeableTokenV1 _utilityToken,
-        address defaultAdmin,
-        address manager,
-        address exchanger
-    ) EIP712("VotingPowerExchange", "1") {
-        govToken = _govToken;
-        utilityToken = _utilityToken;
+    constructor(address _govToken, address _utilityToken, address defaultAdmin, address manager, address exchanger)
+        EIP712("VotingPowerExchange", "1")
+    {
+        if (defaultAdmin == address(0)) revert VotingPowerExchange__DefaultAdminCannotBeZero();
+        govToken = IGovToken(_govToken);
+        utilityToken = IERC20UpgradeableTokenV1(_utilityToken);
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(MANAGER_ROLE, manager);
         _grantRole(EXCHANGER_ROLE, exchanger);

@@ -3,7 +3,7 @@
 pragma solidity 0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import {Upgrades} from "@openzeppelin/openzeppelin-foundry-upgrades/Upgrades.sol";
+import {UnsafeUpgrades, Upgrades} from "@openzeppelin/openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IAccessControl} from "@openzeppelin/upgradeable/lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {ERC20UpgradeableTokenV1} from "src/ERC20UpgradeableTokenV1.sol";
 import {ERC20UpgradeableTokenV2} from "../mocks/ERC20UpgradeableTokenV2.sol";
@@ -26,13 +26,20 @@ contract ERC20UpgradeableTokenV1Test is Test {
 
     function setUp() public {
         // deploy the upgradeable token contract using the OpenZeppelin Upgrades library
-        proxy = Upgrades.deployUUPSProxy(
-            "ERC20UpgradeableTokenV1.sol",
+        // proxy = Upgrades.deployUUPSProxy(
+        //     "ERC20UpgradeableTokenV1.sol",
+        //     abi.encodeCall(
+        //         ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", admin, pauser, minter, burner, admin)
+        //     )
+        // );
+
+        address implementation = address(new ERC20UpgradeableTokenV1());
+        proxy = UnsafeUpgrades.deployUUPSProxy(
+            implementation,
             abi.encodeCall(
                 ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", admin, pauser, minter, burner, admin)
             )
         );
-
         // UnsafeUpgrades method is used to deploy the UUPS in test environment not in production
         // address implementation = address(new ERC20UpgradeableTokenV1());
         // address proxy = Upgrades.deployUUPSProxy(
@@ -190,12 +197,20 @@ contract ERC20UpgradeableTokenV1Test is Test {
     function testUpgradeabilityOfToken() public {
         address treasuryAddr = makeAddr("treasury");
         address newAdmin = makeAddr("newAdmin");
-        // deploy the upgraded token contract using the OpenZeppelin Upgrades library
         vm.startPrank(admin);
-        Upgrades.upgradeProxy(
+        // Upgrades.upgradeProxy(
+        //     address(token),
+        //     "ERC20UpgradeableTokenV2.sol",
+        //     abi.encodeCall(ERC20UpgradeableTokenV2.initializeV2, (treasuryAddr, newAdmin))
+        // );
+        ////////////////////////////
+        // deploy the upgraded implementation token contract
+        address newImplementation = address(new ERC20UpgradeableTokenV2());
+        // upgrade the token using the OpenZeppelin Upgrades library
+        UnsafeUpgrades.upgradeProxy(
             address(token),
-            "ERC20UpgradeableTokenV2.sol",
-            abi.encodeCall(ERC20UpgradeableTokenV2.initializeV2, (treasuryAddr, newAdmin))
+            newImplementation,
+            abi.encodeWithSelector(ERC20UpgradeableTokenV2.initializeV2.selector, treasuryAddr, newAdmin)
         );
 
         // show the address of the deployed proxy

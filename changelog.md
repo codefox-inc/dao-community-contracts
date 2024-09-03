@@ -4,6 +4,8 @@
 
 ### Added
 
+- Added the specification of not allowing the default admin to be zero address.
+
 1. ERC20UpgradeableToken (ERC20)
 
 - Created using OpenZeppelin Wizard.

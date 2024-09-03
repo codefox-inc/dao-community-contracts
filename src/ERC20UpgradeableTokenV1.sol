@@ -20,6 +20,8 @@ contract ERC20UpgradeableTokenV1 is
     ERC20PermitUpgradeable,
     UUPSUpgradeable
 {
+    error DefaultAdminCannotBeZero();
+
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
@@ -39,6 +41,7 @@ contract ERC20UpgradeableTokenV1 is
         address burner,
         address upgrader
     ) public initializer {
+        if (defaultAdmin == address(0)) revert DefaultAdminCannotBeZero();
         __ERC20_init(name, symbol);
         __ERC20Burnable_init();
         __ERC20Pausable_init();

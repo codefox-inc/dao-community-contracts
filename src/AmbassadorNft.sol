@@ -9,12 +9,15 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 /// @custom:security-contact dev@codefox.co.jp
 // Made by OpenZeppelin Contracts Wizard: https://zpl.in/wizard
 contract AmbassadorNft is ERC1155, AccessControl, ERC1155Burnable {
+    error DefaultAdminCannotBeZero();
+
     bytes32 public constant URI_SETTER_ROLE = keccak256("URI_SETTER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
     /// @dev Initializes the contract by setting the roles, which including the DEFAULT_ADMIN_ROLE, MINTER_ROLE, BURNER_ROLE, and URI_SETTER_ROLE.
     constructor(address defaultAdmin, address minter, address burner, address uriSetter) ERC1155("") {
+        if (defaultAdmin == address(0)) revert DefaultAdminCannotBeZero();
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(MINTER_ROLE, minter);
         _grantRole(BURNER_ROLE, burner);

@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 /// @custom:security-contact dev@codefox.co.jp
 contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Votes {
+    error DefaultAdminCannotBeZero();
     error TokenTransferNotAllowed();
 
     // event added for the change of burnedAmountOfUtilToken
@@ -31,6 +32,8 @@ contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vote
         address burner,
         address votingPowerExchange
     ) ERC20(name, symbol) ERC20Permit(name) {
+        if (defaultAdmin == address(0)) revert DefaultAdminCannotBeZero();
+
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(MINTER_ROLE, minter);
         _grantRole(BURNER_ROLE, burner);
