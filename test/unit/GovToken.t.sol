@@ -14,6 +14,7 @@ contract GovTokenTest is Test {
     address public admin = makeAddr("admin");
     address public minter = makeAddr("minter");
     address public burner = makeAddr("burner");
+    address public votingPowerExchange = makeAddr("votingPowerExchange");
 
     // users
     address public user = makeAddr("user");
@@ -22,7 +23,7 @@ contract GovTokenTest is Test {
 
     function setUp() public {
         // deploy the GovToken contract
-        govToken = new GovToken("AMA Gov Token", "AGT", admin, minter, burner);
+        govToken = new GovToken("AMA Gov Token", "AGT", admin, minter, burner, votingPowerExchange);
 
         // show the address of the deployed govToken
         console.log("GovToken deployed at:", address(govToken));
@@ -185,6 +186,48 @@ contract GovTokenTest is Test {
         assertEq(govToken.balanceOf(user), 90 ether);
         // check the balance of the user2
         assertEq(govToken.balanceOf(user2), 90 ether);
+    }
+
+    function testVotingPowerExchangeCanCallSetBurnedAmountOfUtilToken() public {
+        vm.startPrank(votingPowerExchange);
+        govToken.setBurnedAmountOfUtilToken(user, 100 ether);
+        govToken.setBurnedAmountOfUtilToken(user2, 100 ether);
+        vm.stopPrank();
+
+        // check the burned amount of the user
+        assertEq(govToken.burnedAmountOfUtilToken(user), 100 ether);
+        // check the burned amount of the user2
+        assertEq(govToken.burnedAmountOfUtilToken(user2), 100 ether);
+    }
+
+    function testNonRoleCannnotCallSetBurnedAmountOfUtilToken() public {
+        vm.startPrank(user);
+        vm.expectRevert();
+        govToken.setBurnedAmountOfUtilToken(user, 100 ether);
+        vm.expectRevert();
+        govToken.setBurnedAmountOfUtilToken(user2, 100 ether);
+        vm.stopPrank();
+
+        // check the burned amount of the user
+        assertEq(govToken.burnedAmountOfUtilToken(user), 0 ether);
+        // check the burned amount of the user2
+        assertEq(govToken.burnedAmountOfUtilToken(user2), 0 ether);
+    }
+
+    function testSetBurnedAmountOfUtilTokenEvent() public {
+        vm.startPrank(votingPowerExchange);
+        vm.expectEmit();
+        emit GovToken.burnedAmountOfUtilTokenSet(user, 100 ether);
+        govToken.setBurnedAmountOfUtilToken(user, 100 ether);
+        vm.expectEmit();
+        emit GovToken.burnedAmountOfUtilTokenSet(user2, 100 ether);
+        govToken.setBurnedAmountOfUtilToken(user2, 100 ether);
+        vm.stopPrank();
+
+        // check the burned amount of the user
+        assertEq(govToken.burnedAmountOfUtilToken(user), 100 ether);
+        // check the burned amount of the user2
+        assertEq(govToken.burnedAmountOfUtilToken(user2), 100 ether);
     }
 
     /////////////////////////////////////////////////

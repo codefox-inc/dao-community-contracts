@@ -22,6 +22,7 @@ contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vote
     // added for recording the amount of utility tokens burned by a specific account
     mapping(address account => uint256 burnedAmount) public burnedAmountOfUtilToken;
 
+    /// votingPowerExchange role is supposed to be only granted to VotingPowerExchange contract
     constructor(
         string memory name,
         string memory symbol,
