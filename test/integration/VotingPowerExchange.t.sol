@@ -32,7 +32,38 @@ contract VotingPwoerExchangeTest is Test {
         utilityToken = ERC20UpgradeableTokenV1(tempResult.utilityToken);
         govToken = GovToken(tempResult.govToken);
         votingPowerExchange = VotingPowerExchange(tempResult.exchange);
+        admin = tempResult.admin;
+        pauser = tempResult.pauser;
+        minter = tempResult.minter;
+        burner = tempResult.burner;
+        manager = tempResult.manager;
+        exchanger = tempResult.exchanger;
     }
 
-    function test() public pure {}
+    function testAllAccessRoles() public {
+        // test gov token
+
+        console.log("0");
+        assertEq(govToken.hasRole(govToken.DEFAULT_ADMIN_ROLE(), admin), true);
+        console.log("1");
+        assertEq(govToken.hasRole(govToken.MINTER_ROLE(), minter), true);
+        console.log("2");
+        assertEq(govToken.hasRole(govToken.BURNER_ROLE(), burner), true);
+        console.log("3");
+
+        // test utility token
+        assertEq(utilityToken.hasRole(utilityToken.DEFAULT_ADMIN_ROLE(), admin), true);
+        assertEq(utilityToken.hasRole(utilityToken.PAUSER_ROLE(), pauser), true);
+        assertEq(utilityToken.hasRole(utilityToken.MINTER_ROLE(), minter), true);
+        assertEq(utilityToken.hasRole(utilityToken.BURNER_ROLE(), burner), true);
+
+        // test voting power exchange
+        assertEq(votingPowerExchange.hasRole(votingPowerExchange.DEFAULT_ADMIN_ROLE(), admin), true);
+        assertEq(votingPowerExchange.hasRole(votingPowerExchange.MANAGER_ROLE(), manager), true);
+        assertEq(votingPowerExchange.hasRole(votingPowerExchange.EXCHANGER_ROLE(), exchanger), true);
+
+        // special roles when deploying voting power exchange
+        assertEq(govToken.hasRole(govToken.MINTER_ROLE(), address(votingPowerExchange)), true);
+        assertEq(utilityToken.hasRole(utilityToken.BURNER_ROLE(), address(votingPowerExchange)), true);
+    }
 }
