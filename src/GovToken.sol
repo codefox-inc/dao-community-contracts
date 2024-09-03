@@ -12,6 +12,9 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Votes {
     error TokenTransferNotAllowed();
 
+    // event added for the change of burnedAmountOfUtilToken
+    event burnedAmountOfUtilTokenSet(address indexed account, uint256 amount);
+
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant VOTING_POWER_EXCHANGE_ROLE = keccak256("VOTING_POWER_EXCHANGE_ROLE");
@@ -74,6 +77,7 @@ contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vote
         onlyRole(VOTING_POWER_EXCHANGE_ROLE)
     {
         burnedAmountOfUtilToken[account] = amount;
+        emit burnedAmountOfUtilTokenSet(account, amount);
     }
 
     function clock() public view override returns (uint48) {

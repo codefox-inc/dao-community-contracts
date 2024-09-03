@@ -20,6 +20,7 @@ import {IERC20UpgradeableTokenV1} from "./Interfaces.sol";
 contract VotingPowerExchange is AccessControl, EIP712 {
     using SignatureChecker for address;
 
+    // Errors
     error VotingPowerExchange__AmountIsZero();
     error VotingPowerExchange__HighestIdIsTooHigh();
     error VotingPowerExchange__AddressIsZero();
@@ -29,8 +30,9 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     error VotingPowerExchange__LevelIsLowerThanExisting();
     error VotingPowerExchange__LevelIsHigherThanCap();
 
+    // Events
     event VotingPowerReceived(address indexed user, uint256 utilityTokenAmount, uint256 votingPowerAmount);
-    event HighsetIdSet(uint256 highestId);
+    event VotingPowerCapSet(uint256 votingPowerCap);
 
     // EIP-712 domain separator and type hash for the message
     bytes32 private constant _EXCHANGE_TYPEHASH =
@@ -48,9 +50,17 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     IGovToken private immutable govToken;
     IERC20UpgradeableTokenV1 private immutable utilityToken;
 
+    // mapping to store the nonce of the user
     mapping(address => mapping(bytes32 => bool)) private _authorizationStates;
+    // voting power cap
     uint256 private votingPowerCap;
 
+    /// constructor function of the contract.
+    /// @param _govToken The address of the GovToken contract
+    /// @param _utilityToken The address of the ERC20 token contract
+    /// @param defaultAdmin The address of the default admin
+    /// @param manager The address of the manager
+    /// @param exchanger The address of the exchanger
     constructor(
         IGovToken _govToken,
         IERC20UpgradeableTokenV1 _utilityToken,
@@ -71,8 +81,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     ////////////////////////////////////////////
     /**
      * @notice Exchanges utility token for voting power token using sender's signature to check the intention of the user.
-     * @notice Increased level means the amount of voting power token to mint.
-     * @notice The level is equal to the minted token amount onchian. The real voting power when people vote can be different through some off-chain handling.
+     * @notice Increased level means the amount of voting power token to mint. The level is equal to the minted token amount onchian. The real voting power when people vote can be different through some off-chain handling.
      * @dev The main function of this contract.
      * @dev The user must sign the exchange message with the sender address, amount and nonce.
      * @dev Using EIP-712 to validate the signature.
@@ -93,7 +102,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         uint256 currentVotingPower = govToken.balanceOf(sender);
         if (currentVotingPower >= votingPowerCap) revert VotingPowerExchange__LevelIsHigherThanCap();
 
-        // Create the digest for EIP-712 and validate the signature by the `sender`
+        // create the digest for EIP-712 and validate the signature by the `sender`
         bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(_EXCHANGE_TYPEHASH, sender, amount, nonce, expiration)));
         if (!sender.isValidSignatureNow(digest, signature)) revert VotingPowerExchange__InvalidSignature();
 
@@ -102,8 +111,8 @@ contract VotingPowerExchange is AccessControl, EIP712 {
 
         uint256 currentBurnedAmount = govToken.burnedAmountOfUtilToken(sender);
 
-        // Calculate the amount of voting power token amount to mint
-        // increased level = increased token amount of govToken
+        // calculate the amount of voting power token amount to mint
+        // increased voting power = increased level = increased token amount of govToken
         uint256 increasedVotingPower = calculateIncreasedVotingPower(amount, currentBurnedAmount);
 
         uint256 burningTokenAmount = amount;
@@ -124,6 +133,11 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         emit VotingPowerReceived(msg.sender, burningTokenAmount, increasedVotingPower);
     }
 
+    /**
+     * @notice Set the voting power cap
+     * @dev This function is for the manager to set the voting power cap
+     * @param _votingPowerCap The new voting power cap
+     */
     function setLevelCap(uint256 _votingPowerCap) external onlyRole(MANAGER_ROLE) {
         if (_votingPowerCap < votingPowerCap) revert VotingPowerExchange__LevelIsLowerThanExisting();
         _setLevelCap(_votingPowerCap);
@@ -139,13 +153,27 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     ////////////////////////////////////////////
     /////// Internal & Private functions ///////
     ////////////////////////////////////////////
+    /**
+     * @notice Set the voting power cap
+     * @dev This function is for internal use to set the voting power cap
+     * @param _votingPowerCap The new voting power cap
+     */
     function _setLevelCap(uint256 _votingPowerCap) internal {
         votingPowerCap = _votingPowerCap;
+        emit VotingPowerCapSet(_votingPowerCap);
     }
 
     ////////////////////////////////////
     /////// pure/view functions ////////
     ////////////////////////////////////
+    /**
+     * @notice Calculate the increased voting power based on the amount of utility token to burn
+     * @dev This function calculates the increased voting power based on the square root of the burned amount
+     * @dev The formula is: `(sqrt(currentBurnedAmount + amount) - sqrt(currentBurnedAmount)) / 10`, which allows this to happen: e.g. 1,000,000 utility token can be burned to get 100 voting power.
+     * @param amount The amount of utility token to burn
+     * @param currentBurnedAmount The current burned amount of the user
+     * @return increasedVotingPower The increased voting power
+     */
     function calculateIncreasedVotingPower(uint256 amount, uint256 currentBurnedAmount) public pure returns (uint256) {
         uint256 increasedVotingPower = (
             Math.sqrt((currentBurnedAmount + amount) * PRICISION) - Math.sqrt(currentBurnedAmount * PRICISION)
@@ -154,22 +182,23 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     }
 
     /**
-     * @notice Calculate the amount of tokens to burn (amount) to achieve the desired increased level
-     * @param increasedLevel The desired increased level
+     * @notice Calculate the amount of tokens to burn (amount) to achieve the desired increased voting power
+     * @dev This function calculates the amount based on the reverse calculation of the `calculateIncreasedVotingPower` function
+     * @param increasedVotingPower The desired increased level
      * @param currentBurnedAmount The current burned amount of the user
      * @return amount The amount of tokens to be burned
      */
-    function calculateRequiredAmountTobeBurned(uint256 increasedLevel, uint256 currentBurnedAmount)
+    function calculateRequiredAmountTobeBurned(uint256 increasedVotingPower, uint256 currentBurnedAmount)
         public
         pure
         returns (uint256)
     {
         // calculate sqrt(currentBurnedAmount * PRICISION)
         uint256 sqrtCurrent = Math.sqrt(currentBurnedAmount * PRICISION);
-        // calculate increasedLevel * PRICISION_FACTOR
-        uint256 levelWithPrecision = increasedLevel * PRICISION_FACTOR;
+        // calculate increasedVotingPower * PRICISION_FACTOR
+        uint256 votingPowerWithPrecision = increasedVotingPower * PRICISION_FACTOR;
         // calculate new sqrt
-        uint256 sqrtNew = sqrtCurrent + levelWithPrecision;
+        uint256 sqrtNew = sqrtCurrent + votingPowerWithPrecision;
         // calculate new sqrt's power 2 and set its pricision as 18
         uint256 sqrtNewSquared = (sqrtNew * sqrtNew) / PRICISION;
         // calculate the final amount
@@ -177,6 +206,10 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         return amount;
     }
 
+    /**
+     * @notice returns the current voting power cap
+     * @dev This function is for convenience to check the current voting power cap
+     */
     function getVotingPowerCap() external view returns (uint256) {
         return votingPowerCap;
     }
@@ -198,6 +231,10 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         /* solhint-enable */
     }
 
+    /**
+     * @notice returns the addresses of the utilityToken and govToken
+     * @dev This function is for convenience to check the addresses of the tokens
+     */
     function getTokenAddresses() external view returns (address _utilityToken, address _govToken) {
         _utilityToken = address(utilityToken);
         _govToken = address(govToken);
