@@ -42,14 +42,9 @@ contract VotingPwoerExchangeTest is Test {
 
     function testAllAccessRoles() public {
         // test gov token
-
-        console.log("0");
         assertEq(govToken.hasRole(govToken.DEFAULT_ADMIN_ROLE(), admin), true);
-        console.log("1");
         assertEq(govToken.hasRole(govToken.MINTER_ROLE(), minter), true);
-        console.log("2");
         assertEq(govToken.hasRole(govToken.BURNER_ROLE(), burner), true);
-        console.log("3");
 
         // test utility token
         assertEq(utilityToken.hasRole(utilityToken.DEFAULT_ADMIN_ROLE(), admin), true);
