@@ -100,6 +100,7 @@ contract VotingPwoerExchangeTest is Test {
         assertEq(votingPowerExchange.hasRole(votingPowerExchange.DEFAULT_ADMIN_ROLE(), admin), true);
         assertEq(votingPowerExchange.hasRole(votingPowerExchange.MANAGER_ROLE(), manager), true);
         assertEq(votingPowerExchange.hasRole(votingPowerExchange.EXCHANGER_ROLE(), exchanger), true);
+
         // special roles when deploying voting power exchange
         assertEq(govToken.hasRole(govToken.MINTER_ROLE(), address(votingPowerExchange)), true);
         assertEq(utilityToken.hasRole(utilityToken.BURNER_ROLE(), address(votingPowerExchange)), true);
@@ -163,10 +164,121 @@ contract VotingPwoerExchangeTest is Test {
     }
 
     function testUtilityTokensPausability() public {
-        vm.startPrank(pauser);
+        vm.prank(pauser);
         utilityToken.pause();
+        assertEq(utilityToken.paused(), true);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        utilityToken.transfer(user, 1);
+        vm.prank(user);
+        utilityToken.transfer(user2, 1);
+
+        vm.prank(pauser);
+        utilityToken.unpause();
+        assertEq(utilityToken.paused(), false);
+        vm.prank(user);
+        utilityToken.transfer(user2, 1);
+
+        assertEq(utilityToken.balanceOf(user2), 1);
+    }
+
+    //////////////////////////////////////////////
+    ///// Core tests for VotingPowerExchange /////
+    //////////////////////////////////////////////
+    function teestBasicVotingPowerExchangeInfo() public view {
+        (address _utilityToken, address _govToken) = votingPowerExchange.getTokenAddresses();
+        assertEq(_govToken, address(govToken));
+        assertEq(_utilityToken, address(utilityToken));
+    }
+
+    function testConstantValues() public view {
+        (bytes32 __EXCHANGE_TYPEHASH, uint256 _PRICISION_FIX, uint256 _PRICISION_FACTOR, uint256 _PRICISION) =
+            votingPowerExchange.getConstants();
+
+        assertEq(
+            __EXCHANGE_TYPEHASH, keccak256("Exchange(address sender,uint256 amount,bytes32 nonce,uint256 expiration)")
+        );
+        assertEq(_PRICISION, 1e18);
+        assertEq(_PRICISION_FACTOR, 10);
+        assertEq(_PRICISION_FIX, 1e9);
+    }
+
+    function testVotingPowerCap() public view {
+        uint256 cap = votingPowerExchange.getVotingPowerCap();
+        assertEq(cap, 100 * 1e18);
+    }
+
+    function testSettingVotingPowerCap() public {
+        uint256 cap = votingPowerExchange.getVotingPowerCap();
+        assertEq(cap, 100 * 1e18);
+
+        uint256 newCap = 110 * 1e18;
+        vm.startPrank(manager);
+        vm.expectEmit();
+        emit VotingPowerExchange.VotingPowerCapSet(newCap);
+        votingPowerExchange.setVotingPowerCap(newCap);
+        assertEq(votingPowerExchange.getVotingPowerCap(), newCap);
         vm.stopPrank();
+    }
+
+    function testSettingVotingPowerCapFails() public {
+        vm.prank(user);
+        vm.expectRevert();
+        votingPowerExchange.setVotingPowerCap(1000 * 1e18);
+    }
+
+    function testSettingVotingPowerCapFailsCase2() public {
+        vm.prank(manager);
+        vm.expectRevert(VotingPowerExchange.VotingPowerExchange__LevelIsLowerThanExisting.selector);
+        votingPowerExchange.setVotingPowerCap(99 * 1e18);
+    }
+
+    // this test only run the test for the calculation of increased voting power function
+    // 1_000_000 -> 100 voting power
+    // 10_000 -> 10 voting power
+    // 1_000 -> 3.16 voting power
+    // 100 -> 1 voting power
+    function testCalculationOfIncreasedVotingPowerWhenCurrentIsZero() public view {
+        // when you exchange 1_000_000 utility token, you will get 100 voting power
+        uint256 increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(1000000 * 1e18, 0);
+        assertEq(increasedVotingPower, 100 * 1e18);
+        // when you exchange 10_000 utility token, you will get 10 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(10000 * 1e18, 0);
+        assertEq(increasedVotingPower, 10 * 1e18);
+        // when you exchange 1_000 utility token, you will get over 3 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(1000 * 1e18, 0);
+        assertTrue(increasedVotingPower > 316 * 1e16);
+        assertTrue(increasedVotingPower < 317 * 1e16);
+        // when you exchange 100 utility token, you will get 1 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(100 * 1e18, 0);
+        assertEq(increasedVotingPower, 1 * 1e18);
+    }
+
+    // this test only run the test for the calculation of increased voting power function
+    // increasedVotingPower | currentVotingPower
+    // 2000000 | 1000 -> 138.29 voting power
+    // 1000000 | 100 -> 99.0 voting power
+    // 10000 | 100 -> 90.0 voting power
+    // 1000 | 100 -> 2.316 voting power
+    // 100 | 100 -> 0.4142 voting power
+    function testCalculationOfIncreasedVotingPowerWhenCurrentIsNotZero() public {
+        // when you exchange 1_000_000 utility token, you will get 100 voting power
+        uint256 increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(2000000 * 1e18, 1000 * 1e18);
+        assertTrue(increasedVotingPower < 1383 * 1e17);
+        assertTrue(increasedVotingPower > 1382 * 1e17);
+        // when you exchange 1_000_000 utility token, you will get 100 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(1000000 * 1e18, 100 * 1e18);
+        assertTrue(increasedVotingPower < 991 * 1e17);
+        assertTrue(increasedVotingPower > 99 * 1e18);
+        // when you exchange 10_000 utility token, you will get 10 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(10000 * 1e18, 100 * 1e18);
+        assertTrue(increasedVotingPower < 905 * 1e16);
+        assertTrue(increasedVotingPower > 904 * 1e16);
+        // when you exchange 1_000 utility token, you will get over 3 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(1000 * 1e18, 100 * 1e18);
+        assertTrue(increasedVotingPower < 232 * 1e16);
+        assertTrue(increasedVotingPower > 231 * 1e16);
+        // when you exchange 100 utility token, you will get 1 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(100 * 1e18, 100 * 1e18);
+        assertTrue(increasedVotingPower < 415 * 1e15);
+        assertTrue(increasedVotingPower > 413 * 1e15);
     }
 }

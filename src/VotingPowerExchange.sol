@@ -70,7 +70,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(MANAGER_ROLE, manager);
         _grantRole(EXCHANGER_ROLE, exchanger);
-        _setLevelCap(100);
+        _setVotingPowerCap(100 * 1e18);
     }
 
     ////////////////////////////////////////////
@@ -135,9 +135,9 @@ contract VotingPowerExchange is AccessControl, EIP712 {
      * @dev This function is for the manager to set the voting power cap
      * @param _votingPowerCap The new voting power cap
      */
-    function setLevelCap(uint256 _votingPowerCap) external onlyRole(MANAGER_ROLE) {
+    function setVotingPowerCap(uint256 _votingPowerCap) external onlyRole(MANAGER_ROLE) {
         if (_votingPowerCap < votingPowerCap) revert VotingPowerExchange__LevelIsLowerThanExisting();
-        _setLevelCap(_votingPowerCap);
+        _setVotingPowerCap(_votingPowerCap);
     }
 
     /// @notice Check the authorizer's nonce is used or not.
@@ -155,7 +155,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
      * @dev This function is for internal use to set the voting power cap
      * @param _votingPowerCap The new voting power cap
      */
-    function _setLevelCap(uint256 _votingPowerCap) internal {
+    function _setVotingPowerCap(uint256 _votingPowerCap) internal {
         votingPowerCap = _votingPowerCap;
         emit VotingPowerCapSet(_votingPowerCap);
     }
