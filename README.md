@@ -2,6 +2,15 @@
 
 This is a repository for the smart contracts of the DAO community. The smart contracts are written in Solidity and tested using the Foundry testing framework.
 
+# How to Start
+
+1. Clone the repository.
+2. Update the foundry dependencies by running `foundryup`.
+3. Install the dependencies using `make install`.
+4. Compile the contracts using `forge compile`.
+5. Run the test using `make test`.
+6. Run the coverage using `make coverage`.
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
