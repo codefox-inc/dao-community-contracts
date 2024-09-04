@@ -300,5 +300,10 @@ contract VotingPwoerExchangeTest is Test {
         // when you exchange 1 voting power, you need to burn 100 utility token
         requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(1 * 1e18, 0);
         assertEq(requiredAmount, 100 * 1e18);
+
+        // when you exchange 90 voting power, you need to burn 810_000 utility token
+        requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(90 * 1e18, 0);
+        assertTrue(requiredAmount < 810_001 * 1e18);
+        assertTrue(requiredAmount > 809_999 * 1e18);
     }
 }
