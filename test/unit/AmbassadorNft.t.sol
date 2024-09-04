@@ -192,7 +192,7 @@ contract AmbassadorTest is Test {
         ambassadorNft.setURI("https://example.com/{id}.json");
     }
 
-    function testBalanceOfWorks() public {
+    function testBalanceOfWorks() public view {
         // check the balances
         assertEq(ambassadorNft.balanceOf(user, 0), 1);
         assertEq(ambassadorNft.balanceOf(user, 1), 0);
@@ -200,7 +200,7 @@ contract AmbassadorTest is Test {
         assertEq(ambassadorNft.balanceOf(user2, 1), 1);
     }
 
-    function testBalanceOfBatchWorks() public {
+    function testBalanceOfBatchWorks() public view {
         // check the balances
         uint256[] memory ids = new uint256[](2);
         address[] memory accounts = new address[](2);

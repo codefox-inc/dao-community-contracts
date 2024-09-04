@@ -19,6 +19,8 @@ struct DeploymentResult {
     address burner;
     address manager;
     address exchanger;
+    uint256 deployerKey;
+    uint256 participant;
 }
 
 contract DeployContracts is Script {
@@ -26,6 +28,12 @@ contract DeployContracts is Script {
     GovToken public govToken;
     ERC20UpgradeableTokenV1 public utilityToken;
     VotingPowerExchange public votingPowerExchange;
+
+    DeploymentResult public result;
+
+    // anvil's default private key
+    uint256 public constant DEFAULT_ANVIL_KEY = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
+    uint256 public constant DEFAULT_ANVIL_KEY2 = 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d;
 
     // admin roles
     address public admin;
@@ -37,8 +45,7 @@ contract DeployContracts is Script {
     address public constant ZERO_ADDRESS = address(0);
 
     function run() public returns (DeploymentResult memory) {
-        DeploymentResult memory result;
-
+        console.log("Default anvil key2: %d", DEFAULT_ANVIL_KEY2);
         console.log("chainid: %d", block.chainid);
         // local netwrok
         if (block.chainid == 31337) {
@@ -56,7 +63,9 @@ contract DeployContracts is Script {
                 minter: ZERO_ADDRESS,
                 burner: ZERO_ADDRESS,
                 manager: ZERO_ADDRESS,
-                exchanger: ZERO_ADDRESS
+                exchanger: ZERO_ADDRESS,
+                deployerKey: vm.envUint("PRIVATE_KEY"),
+                participant: 0
             });
         } else if (block.chainid == 8453) {
             console.log("Deploying contracts on the base mainnet");
@@ -70,13 +79,16 @@ contract DeployContracts is Script {
                 minter: ZERO_ADDRESS,
                 burner: ZERO_ADDRESS,
                 manager: ZERO_ADDRESS,
-                exchanger: ZERO_ADDRESS
+                exchanger: ZERO_ADDRESS,
+                deployerKey: vm.envUint("PRIVATE_KEY"),
+                participant: 0
             });
         }
 
         return result;
     }
 
+    // deploy the contracts on the local network for testing
     function deploymentsOnLocalNetwork() public returns (DeploymentResult memory) {
         admin = makeAddr("admin");
         pauser = makeAddr("pauser");
@@ -127,7 +139,9 @@ contract DeployContracts is Script {
             minter: minter,
             burner: burner,
             manager: manager,
-            exchanger: exchanger
+            exchanger: exchanger,
+            deployerKey: DEFAULT_ANVIL_KEY,
+            participant: DEFAULT_ANVIL_KEY2
         });
     }
 }

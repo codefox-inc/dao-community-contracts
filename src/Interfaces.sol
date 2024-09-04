@@ -2,6 +2,7 @@
 // Compatible with OpenZeppelin Contracts ^5.0.0
 pragma solidity 0.8.24;
 
+// These are the interfaces which got used in the VoingPowerExchange contract
 interface IERC20UpgradeableTokenV1 {
     function mint(address account, uint256 amount) external;
     function burnByBurner(address account, uint256 amount) external;
