@@ -116,7 +116,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         // check the level cap to make sure it can only reach the cap but not to be over it
         if (currentVotingPower + increasedVotingPower > votingPowerCap) {
             increasedVotingPower = votingPowerCap - currentVotingPower;
-            burningTokenAmount = calculateRequiredAmountTobeBurned(increasedVotingPower, currentBurnedAmount);
+            burningTokenAmount = calculateRequiredAmountToBeBurned(increasedVotingPower, currentBurnedAmount);
         }
 
         // burn utilityToken from the `sender`
@@ -185,7 +185,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
      * @param currentBurnedAmount The current burned amount of the user
      * @return amount The amount of tokens to be burned
      */
-    function calculateRequiredAmountTobeBurned(uint256 increasedVotingPower, uint256 currentBurnedAmount)
+    function calculateRequiredAmountToBeBurned(uint256 increasedVotingPower, uint256 currentBurnedAmount)
         public
         pure
         returns (uint256)

@@ -259,11 +259,15 @@ contract VotingPwoerExchangeTest is Test {
     // 10000 | 100 -> 90.0 voting power
     // 1000 | 100 -> 2.316 voting power
     // 100 | 100 -> 0.4142 voting power
-    function testCalculationOfIncreasedVotingPowerWhenCurrentIsNotZero() public {
+    function testCalculationOfIncreasedVotingPowerWhenCurrentIsNotZero() public view {
         // when you exchange 1_000_000 utility token, you will get 100 voting power
         uint256 increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(2000000 * 1e18, 1000 * 1e18);
         assertTrue(increasedVotingPower < 1383 * 1e17);
         assertTrue(increasedVotingPower > 1382 * 1e17);
+        // when you exchange 1_500_000 utility token, you will get 100 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(1500000 * 1e18, 1000 * 1e18);
+        assertTrue(increasedVotingPower < 1194 * 1e17);
+        assertTrue(increasedVotingPower > 1193 * 1e17);
         // when you exchange 1_000_000 utility token, you will get 100 voting power
         increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(1000000 * 1e18, 100 * 1e18);
         assertTrue(increasedVotingPower < 991 * 1e17);
@@ -280,5 +284,21 @@ contract VotingPwoerExchangeTest is Test {
         increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(100 * 1e18, 100 * 1e18);
         assertTrue(increasedVotingPower < 415 * 1e15);
         assertTrue(increasedVotingPower > 413 * 1e15);
+    }
+
+    // this test only run the test for the calculation of required amount to be burned function
+    function testCalculateRequiredAmountToBeBurnedWhenCurrentIsZero() public view {
+        // when you exchange 100 voting power, you need to burn 1_000_000 utility token
+        uint256 requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(100 * 1e18, 0);
+        assertEq(requiredAmount, 100_0000 * 1e18);
+        // when you exchange 10 voting power, you need to burn 10_000 utility token
+        requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(10 * 1e18, 0);
+        assertEq(requiredAmount, 10_000 * 1e18);
+        // when you exchange 3 voting power, you need to burn 1_000 utility token
+        requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(3 * 1e18, 0);
+        assertEq(requiredAmount, 900 * 1e18);
+        // when you exchange 1 voting power, you need to burn 100 utility token
+        requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(1 * 1e18, 0);
+        assertEq(requiredAmount, 100 * 1e18);
     }
 }

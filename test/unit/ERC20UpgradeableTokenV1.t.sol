@@ -110,7 +110,7 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(token.totalSupply(), 1000 ether);
     }
 
-    function testRolesAreSetCorrectly() public {
+    function testRolesAreSetCorrectly() public view {
         assertEq(token.hasRole(token.DEFAULT_ADMIN_ROLE(), admin), true);
         assertEq(token.hasRole(token.PAUSER_ROLE(), pauser), true);
         assertEq(token.hasRole(token.MINTER_ROLE(), minter), true);
