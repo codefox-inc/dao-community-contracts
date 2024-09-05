@@ -24,11 +24,12 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     error VotingPowerExchange__AmountIsZero();
     error VotingPowerExchange__HighestIdIsTooHigh();
     error VotingPowerExchange__AddressIsZero();
+    error VotingPowerExchange__GovOrUtilAddressIsZero();
     error VotingPowerExchange__InvalidNonce();
     error VotingPowerExchange__SignatureExpired();
     error VotingPowerExchange__InvalidSignature();
     error VotingPowerExchange__LevelIsLowerThanExisting();
-    error VotingPowerExchange__LevelIsHigherThanCap();
+    error VotingPowerExchange__VotingPowerIsHigherThanCap();
 
     // Events
     event VotingPowerReceived(address indexed user, uint256 utilityTokenAmount, uint256 votingPowerAmount);
@@ -65,6 +66,9 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         EIP712("VotingPowerExchange", "1")
     {
         if (defaultAdmin == address(0)) revert VotingPowerExchange__DefaultAdminCannotBeZero();
+        if (_govToken == address(0) || _utilityToken == address(0)) {
+            revert VotingPowerExchange__GovOrUtilAddressIsZero();
+        }
         govToken = IGovToken(_govToken);
         utilityToken = IERC20UpgradeableTokenV1(_utilityToken);
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
@@ -97,7 +101,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         if (block.timestamp > expiration) revert VotingPowerExchange__SignatureExpired();
         // check the current gove token balance of the sender
         uint256 currentVotingPower = govToken.balanceOf(sender);
-        if (currentVotingPower >= votingPowerCap) revert VotingPowerExchange__LevelIsHigherThanCap();
+        if (currentVotingPower >= votingPowerCap) revert VotingPowerExchange__VotingPowerIsHigherThanCap();
 
         // create the digest for EIP-712 and validate the signature by the `sender`
         bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(_EXCHANGE_TYPEHASH, sender, amount, nonce, expiration)));
@@ -136,7 +140,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
      * @param _votingPowerCap The new voting power cap
      */
     function setVotingPowerCap(uint256 _votingPowerCap) external onlyRole(MANAGER_ROLE) {
-        if (_votingPowerCap < votingPowerCap) revert VotingPowerExchange__LevelIsLowerThanExisting();
+        if (_votingPowerCap <= votingPowerCap) revert VotingPowerExchange__LevelIsLowerThanExisting();
         _setVotingPowerCap(_votingPowerCap);
     }
 

@@ -20,3 +20,5 @@ test :; forge test -vv
 snapshot :; forge snapshot
 
 format :; forge fmt
+
+coverage :; forge coverage
