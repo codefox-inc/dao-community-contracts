@@ -3,8 +3,9 @@
 pragma solidity 0.8.24;
 
 import {console, Script} from "forge-std/Script.sol";
-import {Upgrades, UnsafeUpgrades} from "@openzeppelin/openzeppelin-foundry-upgrades/Upgrades.sol";
-import {IAccessControl} from "@openzeppelin/upgradeable/lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
+import {Upgrades, UnsafeUpgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+import {IAccessControl} from
+    "openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {ERC20UpgradeableTokenV1} from "src/ERC20UpgradeableTokenV1.sol";
 import {VotingPowerExchange} from "src/VotingPowerExchange.sol";
 import {GovToken} from "src/GovToken.sol";

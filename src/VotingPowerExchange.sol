@@ -56,7 +56,6 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     // voting power cap for limiting the voting power
     uint256 private votingPowerCap;
 
-    /// constructor function of the contract.
     /// @param _govToken The address of the GovToken contract
     /// @param _utilityToken The address of the ERC20 token contract
     /// @param defaultAdmin The address of the default admin
@@ -89,7 +88,8 @@ contract VotingPowerExchange is AccessControl, EIP712 {
      * @param sender The address of the user who wants to exchange utilityToken for voting power token.
      * @param amount The amount of utilityToken to exchange.
      * @param nonce The nonce to prevent replay attacks.
-     * @param signature The signature of the user to validate the exchange intention.
+     * @param expiration The expiration time of the signature.
+     * @param signature The signature of the user to validate the voting power exchanging intention.
      */
     function exchange(address sender, uint256 amount, bytes32 nonce, uint256 expiration, bytes calldata signature)
         external
