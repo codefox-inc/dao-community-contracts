@@ -333,8 +333,15 @@ contract VotingPowerExchangeUnitTest is Test {
     // - currentBurnedAmount: The amount of tokens already burned
     // - expectedIncrease: The expected increase in voting power
     // - testCaseNumber: The number of the test case for easy identification
-    function runTestCase(uint256 amount, uint256 currentBurnedAmount, uint256 expectedIncrease, uint256 testCaseNumber) internal view {
+    function runTestCase(uint256 amount, uint256 currentBurnedAmount, uint256 expectedIncrease, uint256 testCaseNumber)
+        internal
+        view
+    {
         uint256 actualIncrease = votingPowerExchange.calculateIncrementedVotingPower(amount, currentBurnedAmount);
-        assertEq(actualIncrease, expectedIncrease, string(abi.encodePacked("Test case ", Strings.toString(testCaseNumber), " failed")));
+        assertEq(
+            actualIncrease,
+            expectedIncrease,
+            string(abi.encodePacked("Test case ", Strings.toString(testCaseNumber), " failed"))
+        );
     }
 }
