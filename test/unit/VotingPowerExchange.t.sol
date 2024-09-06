@@ -44,7 +44,6 @@ contract VotingPowerExchangeUnitTest is Test {
         uint256 actualVotingPower4 = votingPowerExchange.calculateVotingPowerFromBurnedAmount(amount4);
         assertApproxEqRel(actualVotingPower4, expectedVotingPower4, 0.001e16);
 
-
         // test case 5: 15092 * 1e18 -> 44.70679 * 1e18
         uint256 amount5 = 15092 * 1e18;
         uint256 expectedVotingPower5 = 43.70679 * 1e18;
@@ -161,7 +160,7 @@ contract VotingPowerExchangeUnitTest is Test {
             uint256(73745),
             uint256(75240)
         ];
-        
+
         uint256[100] memory expectedVotingPowers = [
             uint256(0),
             uint256(1),
