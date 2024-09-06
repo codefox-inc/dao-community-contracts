@@ -276,4 +276,65 @@ contract VotingPowerExchangeUnitTest is Test {
             );
         }
     }
+
+    function testCalculateIncrementedVotingPower() public view {
+        // Test case 1: Starting from 0 burned amount
+        // Burning 3350 tokens should result in 20 voting power
+        runTestCase(3350 * 1e18, 0, 20 * 1e18, 1);
+
+        // Test case 2: Incremental increase from existing burned amount
+        // Burning additional 1400 tokens from 1950 should increase voting power by 5
+        runTestCase(1400 * 1e18, 1950 * 1e18, 5 * 1e18, 2);
+
+        // Test case 3: Large incremental increase
+        // Burning additional 11375 tokens from 16675 should increase voting power by 14
+        runTestCase(11375 * 1e18, 16675 * 1e18, 14 * 1e18, 3);
+
+        // Test case 4: Minimum threshold for voting power increase
+        // Burning 25 tokens from 0 should result in 1 voting power
+        runTestCase(25 * 1e18, 0, 1 * 1e18, 4);
+
+        // Test case 5: Zero token burn
+        // Burning 0 tokens should not increase voting power
+        runTestCase(0, 10000 * 1e18, 0, 5);
+
+        // Test case 6: Small incremental increase
+        // Burning 740 tokens from 25 should increase voting power by 8
+        runTestCase(740 * 1e18, 25 * 1e18, 8 * 1e18, 6);
+
+        // Test case 7: Medium incremental increase
+        // Burning 2920 tokens from 120 should increase voting power by 16
+        runTestCase(2920 * 1e18, 120 * 1e18, 16 * 1e18, 7);
+
+        // Test case 8: Large incremental increase
+        // Burning 6695 tokens from 120 should increase voting power by 26
+        runTestCase(6695 * 1e18, 120 * 1e18, 26 * 1e18, 8);
+
+        // Test case 9: Very large incremental increase
+        // Burning 11970 tokens from 120 should increase voting power by 36
+        runTestCase(11970 * 1e18, 120 * 1e18, 36 * 1e18, 9);
+
+        // Test case 10: Extreme large incremental increase
+        // Burning 18745 tokens from 120 should increase voting power by 46
+        runTestCase(18745 * 1e18, 120 * 1e18, 46 * 1e18, 10);
+
+        // Test case 11: Extreme large incremental increase
+        // Burning 18745 tokens from 120 should increase voting power by 99
+        runTestCase(75240 * 1e18, 0 * 1e18, 99 * 1e18, 11);
+
+        // Test case 12: Extreme large incremental increase
+        // Burning 75215 tokens from 25 should increase voting power by 98
+        runTestCase(75215 * 1e18, 25 * 1e18, 98 * 1e18, 12);
+    }
+
+    // Helper function to run individual test cases
+    // Parameters:
+    // - amount: The amount of tokens to be burned
+    // - currentBurnedAmount: The amount of tokens already burned
+    // - expectedIncrease: The expected increase in voting power
+    // - testCaseNumber: The number of the test case for easy identification
+    function runTestCase(uint256 amount, uint256 currentBurnedAmount, uint256 expectedIncrease, uint256 testCaseNumber) internal view {
+        uint256 actualIncrease = votingPowerExchange.calculateIncrementedVotingPower(amount, currentBurnedAmount);
+        assertEq(actualIncrease, expectedIncrease, string(abi.encodePacked("Test case ", Strings.toString(testCaseNumber), " failed")));
+    }
 }
