@@ -29,7 +29,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     error VotingPowerExchange__SignatureExpired();
     error VotingPowerExchange__InvalidSignature();
     error VotingPowerExchange__LevelIsLowerThanExisting();
-    error VotingPowerExchange__VotingPowerIsHigherThanCap();
+    error VotingPowerExchange__VotingPowerIsHigherThanCap(uint256 currentVotingPower);
 
     // Events
     event VotingPowerReceived(address indexed user, uint256 utilityTokenAmount, uint256 votingPowerAmount);
@@ -42,10 +42,10 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     // Roles for the contract. Default admin holds the highest authority to to set the manager and exchanger.
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     bytes32 public constant EXCHANGER_ROLE = keccak256("EXCHANGER_ROLE");
-    // PRICISION values for the calculation
-    uint256 private constant PRICISION_FIX = 1e9;
-    uint256 private constant PRICISION_FACTOR = 10;
-    uint256 private constant PRICISION = 1e18;
+    // PRECISION values for the calculation
+    uint256 private constant PRECISION_FIX = 1e9;
+    uint256 private constant PRECISION_FACTOR = 10;
+    uint256 private constant PRECISION = 1e18;
 
     // token instances
     IGovToken private immutable govToken;
@@ -56,6 +56,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     // voting power cap for limiting the voting power
     uint256 private votingPowerCap;
 
+    /// @notice The constructor of the VotingPowerExchange contract
     /// @param _govToken The address of the GovToken contract
     /// @param _utilityToken The address of the ERC20 token contract
     /// @param defaultAdmin The address of the default admin
@@ -68,6 +69,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         if (_govToken == address(0) || _utilityToken == address(0)) {
             revert VotingPowerExchange__GovOrUtilAddressIsZero();
         }
+
         govToken = IGovToken(_govToken);
         utilityToken = IERC20UpgradeableTokenV1(_utilityToken);
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
@@ -101,7 +103,9 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         if (block.timestamp > expiration) revert VotingPowerExchange__SignatureExpired();
         // check the current gove token balance of the sender
         uint256 currentVotingPower = govToken.balanceOf(sender);
-        if (currentVotingPower >= votingPowerCap) revert VotingPowerExchange__VotingPowerIsHigherThanCap();
+        if (currentVotingPower >= votingPowerCap) {
+            revert VotingPowerExchange__VotingPowerIsHigherThanCap(currentVotingPower);
+        }
 
         // create the digest for EIP-712 and validate the signature by the `sender`
         bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(_EXCHANGE_TYPEHASH, sender, amount, nonce, expiration)));
@@ -112,6 +116,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
 
         uint256 currentBurnedAmount = govToken.burnedAmountOfUtilToken(sender);
 
+        // TODO: change the logics here according to `calculateIncrementedVotingPower` etc
         // calculate the amount of voting power token amount to mint
         // increased voting power = increased level = increased token amount of govToken
         uint256 increasedVotingPower = calculateIncreasedVotingPower(amount, currentBurnedAmount);
@@ -167,6 +172,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     ////////////////////////////////////
     /////// pure/view functions ////////
     ////////////////////////////////////
+    // TODO: delete this function
     /**
      * @notice Calculate the increased voting power based on the amount of utility token to burn
      * @dev This function calculates the increased voting power based on the square root of the burned amount
@@ -177,11 +183,12 @@ contract VotingPowerExchange is AccessControl, EIP712 {
      */
     function calculateIncreasedVotingPower(uint256 amount, uint256 currentBurnedAmount) public pure returns (uint256) {
         uint256 increasedVotingPower = (
-            Math.sqrt((currentBurnedAmount + amount) * PRICISION) - Math.sqrt(currentBurnedAmount * PRICISION)
-        ) / PRICISION_FACTOR;
+            Math.sqrt((currentBurnedAmount + amount) * PRECISION) - Math.sqrt(currentBurnedAmount * PRECISION)
+        ) / PRECISION_FACTOR;
         return increasedVotingPower;
     }
 
+    // TODO: delete this function
     /**
      * @notice Calculate the amount of tokens to burn (amount) to achieve the desired increased voting power
      * @dev This function calculates the amount based on the reverse calculation of the `calculateIncreasedVotingPower` function
@@ -194,17 +201,53 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         pure
         returns (uint256)
     {
-        // calculate sqrt(currentBurnedAmount * PRICISION)
-        uint256 sqrtCurrent = Math.sqrt(currentBurnedAmount * PRICISION);
-        // calculate increasedVotingPower * PRICISION_FACTOR
-        uint256 votingPowerWithPrecision = increasedVotingPower * PRICISION_FACTOR;
+        // calculate sqrt(currentBurnedAmount * PRECISION)
+        uint256 sqrtCurrent = Math.sqrt(currentBurnedAmount * PRECISION);
+        // calculate increasedVotingPower * PRECISION_FACTOR
+        uint256 votingPowerWithPrecision = increasedVotingPower * PRECISION_FACTOR;
         // calculate new sqrt
         uint256 sqrtNew = sqrtCurrent + votingPowerWithPrecision;
-        // calculate new sqrt's power 2 and set its pricision as 18
-        uint256 sqrtNewSquared = (sqrtNew * sqrtNew) / PRICISION;
+        // calculate new sqrt's power 2 and set its prEcision as 18
+        uint256 sqrtNewSquared = (sqrtNew * sqrtNew) / PRECISION;
         // calculate the final amount
         uint256 amount = sqrtNewSquared - currentBurnedAmount;
         return amount;
+    }
+
+    // TODO: test this function
+    /**
+     * @notice Calculate the increased voting power based on the amount of utility token to burn
+     * @dev This function calculates the increased voting power based on the difference of the voting power from the burned amount
+     * @param amount The amount of utility token to burn
+     * @param currentBurnedAmount The current burned amount of the user
+     * @return increasedVotingPower The increased voting power
+     */
+    function calculateIncrementedVotingPower(uint256 amount, uint256 currentBurnedAmount)
+        public
+        pure
+        returns (uint256)
+    {
+        return calculateVotingPowerFromBurnedAmount(amount + currentBurnedAmount)
+            - calculateVotingPowerFromBurnedAmount(currentBurnedAmount);
+    }
+
+    // TODO: test this function
+    /**
+     * @notice Calculate the voting power based on the burned amount
+     * @dev This function calculates the voting power based on the burned amount
+     * @dev The formula is: `(2*SQRT(306.25 + 30*x) - 5) / 30 - 1`, which means: e.g. 3,350 utility token can be burned to get 20 voting power.
+     * @dev 0 utility token burned menas getting 0 voting power.
+     * @param amount The amount of utility token to burn
+     * @return votingPower The voting power
+     */
+    function calculateVotingPowerFromBurnedAmount(uint256 amount) public pure returns (uint256) {
+        // calculate 306.25 + 30*x
+        uint256 innerValue = (30625 * 1e16 + 30 * amount);
+        // calculate 2*SQRT(306.25 + 30*x)
+        uint256 sqrtPart = 2 * Math.sqrt(innerValue) * PRECISION_FIX;
+        // calculate (2*SQRT(306.25+30*x)-5)/30 - 1
+        uint256 result = (uint256(sqrtPart) - 5 * PRECISION) / 30 - PRECISION;
+        return result;
     }
 
     /**
@@ -222,14 +265,12 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     function getConstants()
         external
         pure
-        returns (bytes32 __EXCHANGE_TYPEHASH, uint256 _PRICISION_FIX, uint256 _PRICISION_FACTOR, uint256 _PRICISION)
+        returns (bytes32 __EXCHANGE_TYPEHASH, uint256 _PRECISION_FIX, uint256 _PRECISION_FACTOR, uint256 _PRECISION)
     {
-        /* solhint-disable */
         __EXCHANGE_TYPEHASH = _EXCHANGE_TYPEHASH;
-        _PRICISION_FIX = PRICISION_FIX;
-        _PRICISION_FACTOR = PRICISION_FACTOR;
-        _PRICISION = PRICISION;
-        /* solhint-enable */
+        _PRECISION_FIX = PRECISION_FIX;
+        _PRECISION_FACTOR = PRECISION_FACTOR;
+        _PRECISION = PRECISION;
     }
 
     /**
