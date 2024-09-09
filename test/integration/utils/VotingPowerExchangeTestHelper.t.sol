@@ -11,7 +11,7 @@ contract VotingPowerExchangeTestHelper is Test {
     bytes32 private constant _EXCHANGE_TYPEHASH =
         keccak256("Exchange(address sender,uint256 amount,bytes32 nonce,uint256 expiration)");
 
-    function generateSignatureFromPrivateKey(uint256 privateKey, uint256 amount, uint256 nonce, uint256 expiration)
+    function generateSignatureFromPrivateKey(uint256 privateKey, uint256 amount, bytes32 nonce, uint256 expiration)
         public
         view
         returns (bytes memory)

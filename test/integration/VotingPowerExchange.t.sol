@@ -2,13 +2,14 @@
 
 pragma solidity 0.8.24;
 
-import {DeployContracts, DeploymentResult} from "script/DeployContracts.s.sol";
 import {Test, console} from "forge-std/Test.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {AmbassadorNft} from "src/AmbassadorNft.sol";
+import {DeployContracts, DeploymentResult} from "script/DeployContracts.s.sol";
 import {ERC20UpgradeableTokenV1} from "src/ERC20UpgradeableTokenV1.sol";
 import {GovToken} from "src/GovToken.sol";
 import {VotingPowerExchange} from "src/VotingPowerExchange.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {VotingPowerExchangeTestHelper} from "./utils/VotingPowerExchangeTestHelper.t.sol";
 
 contract VotingPwoerExchangeTest is Test {
     // instances
@@ -16,6 +17,7 @@ contract VotingPwoerExchangeTest is Test {
     ERC20UpgradeableTokenV1 public utilityToken;
     VotingPowerExchange public votingPowerExchange;
     DeployContracts public dc;
+    VotingPowerExchangeTestHelper public helper;
 
     DeploymentResult result;
 
@@ -60,6 +62,16 @@ contract VotingPwoerExchangeTest is Test {
         utilityToken.mint(participant, 100_000 * 1e18);
         utilityToken.mint(participant2, 10_000 * 1e18);
         vm.stopPrank();
+
+        // set up the roles for exchange contract
+
+        helper = new VotingPowerExchangeTestHelper();
+
+        // other setup
+        vm.label(participant, "participant");
+        vm.label(participant2, "participant2");
+        vm.label(user, "user");
+        vm.label(user2, "user2");
     }
 
     function testReturnedSetupValues() public view {
@@ -384,4 +396,11 @@ contract VotingPwoerExchangeTest is Test {
     }
 
     /////// Exchange tests ///////
+    function testExchangeCase1() public {
+        bytes32 nonce = bytes32(0);
+        bytes memory signature = helper.generateSignatureFromPrivateKey(dc.DEFAULT_ANVIL_KEY2(), 620 * 1e18, nonce, block.timestamp + 3600);
+        vm.startPrank(exchanger);
+        votingPowerExchange.exchange(participant, 100_000 * 1e18, nonce, block.timestamp + 3600, signature);
+        vm.stopPrank();
+    }
 }
