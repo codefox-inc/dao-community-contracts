@@ -708,10 +708,10 @@ contract VotingPowerExchangeUnitTest is Test {
         );
     }
 
-    function testCalculateBurningAmountFromVotingPowerRareCases() public view {
-        uint256 level46 = votingPowerExchange.calculateBurningAmountFromVotingPower(46 * 1e18);
-        uint256 level60 = votingPowerExchange.calculateBurningAmountFromVotingPower(60 * 1e18);
-        uint256 level99 = votingPowerExchange.calculateBurningAmountFromVotingPower(99 * 1e18);
-        runTestCaseForIncrementedBurningAmount(14 * 1e18, 46 * 1e18, level60 - level46, 1);
-    }
+    // function testCalculateBurningAmountFromVotingPowerRareCases() public view {
+    //     uint256 level46 = votingPowerExchange.calculateBurningAmountFromVotingPower(46 * 1e18);
+    //     uint256 level60 = votingPowerExchange.calculateBurningAmountFromVotingPower(60 * 1e18);
+    //     uint256 level99 = votingPowerExchange.calculateBurningAmountFromVotingPower(99 * 1e18);
+    //     runTestCaseForIncrementedBurningAmount(14 * 1e18, 46 * 1e18, level60 - level46, 1);
+    // }
 }

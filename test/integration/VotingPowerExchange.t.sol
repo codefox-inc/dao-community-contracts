@@ -249,95 +249,108 @@ contract VotingPwoerExchangeTest is Test {
     }
 
     // this test only run the test for the calculation of increased voting power function
-    // 1_000_000 -> 100 voting power
-    // 10_000 -> 10 voting power
-    // 1_000 -> 3.16 voting power
-    // 100 -> 1 voting power
+    // 75240 -> 99 voting power
+    // 3350 -> 20 voting power
+    // 765 -> 10 voting power
+    // 190 -> 4 voting power
+    // 4255 -> 22~23 voting power
+    // 10000 -> 35~36 voting power
     function testCalculationOfIncreasedVotingPowerWhenCurrentIsZero() public view {
-        // when you exchange 1_000_000 utility token, you will get 100 voting power
-        uint256 increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(1000000 * 1e18, 0);
-        assertEq(increasedVotingPower, 100 * 1e18);
-        // when you exchange 10_000 utility token, you will get 10 voting power
-        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(10000 * 1e18, 0);
-        assertEq(increasedVotingPower, 10 * 1e18);
-        // when you exchange 1_000 utility token, you will get over 3 voting power
-        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(1000 * 1e18, 0);
-        assertTrue(increasedVotingPower > 316 * 1e16);
-        assertTrue(increasedVotingPower < 317 * 1e16);
-        // when you exchange 100 utility token, you will get 1 voting power
-        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(100 * 1e18, 0);
-        assertEq(increasedVotingPower, 1 * 1e18);
+        // when you exchange 75_240 utility token, you will get 99 voting power
+        uint256 increasedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(75240 * 1e18, 0);
+        assertEq(increasedVotingPower, 99 * 1e18);
+        // when you exchange 3350 utility token, you will get 20 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(3350 * 1e18, 0);
+        assertEq(increasedVotingPower, 20 * 1e18);
+        // when you exchange 765 utility token, you will get 9 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(765 * 1e18, 0);
+        assertEq(increasedVotingPower, 9 * 1e18);
+        // when you exchange 4255 utility token, you will get 22~23 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(4255 * 1e18, 0);
+        assertTrue(increasedVotingPower > 225 * 1e17);
+        assertTrue(increasedVotingPower < 23 * 1e18);
+        // when you exchange 10000 utility token, you will get 35~36 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(10000 * 1e18, 0);
+        assertTrue(increasedVotingPower > 35 * 1e18);
+        assertTrue(increasedVotingPower < 36 * 1e18);
     }
 
     // this test only run the test for the calculation of increased voting power function
     // increasedVotingPower | currentVotingPower
-    // 2000000 | 1000 -> 138.29 voting power
-    // 1000000 | 100 -> 99.0 voting power
-    // 10000 | 100 -> 90.0 voting power
-    // 1000 | 100 -> 2.316 voting power
-    // 100 | 100 -> 0.4142 voting power
+    // 6175 | 1100 -> 138.29 voting power
+    // 5100 | 25 -> 24 voting power
+    // 300 | 9800 -> less than 1 voting power
+    // 250 | 10_100 -> 1 voting power for getting to level 36 with previous test
+    // 75240 | 25 -> 98~99 voting power
+    // 94350 | 65 -> 109~110 voting power
+    // 500 | 25 -> 6~7 voting power
     function testCalculationOfIncreasedVotingPowerWhenCurrentIsNotZero() public view {
-        // when you exchange 2_000_000 utility token and burned token is currently 1000 * 1e18, you will get 138 voting power
-        uint256 increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(2000000 * 1e18, 1000 * 1e18);
-        assertTrue(increasedVotingPower < 1383 * 1e17);
-        assertTrue(increasedVotingPower > 1382 * 1e17);
-        // when you exchange 1_500_000 utility token with current burned token as 1000 * 1e18, you will get 119 voting power
-        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(1500000 * 1e18, 1000 * 1e18);
-        assertTrue(increasedVotingPower < 1194 * 1e17);
-        assertTrue(increasedVotingPower > 1193 * 1e17);
-        // when you exchange 1_000_000 utility token with current burned tokken as 100 * 1e18, you will get 99 voting power
-        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(1000000 * 1e18, 100 * 1e18);
-        assertTrue(increasedVotingPower < 991 * 1e17);
-        assertTrue(increasedVotingPower > 99 * 1e18);
-        // when you exchange 10_000 utility token, you will get 10 voting power
-        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(10000 * 1e18, 100 * 1e18);
-        assertTrue(increasedVotingPower < 905 * 1e16);
-        assertTrue(increasedVotingPower > 904 * 1e16);
-        // when you exchange 1_000 utility token, you will get over 3 voting power
-        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(1000 * 1e18, 100 * 1e18);
-        assertTrue(increasedVotingPower < 232 * 1e16);
-        assertTrue(increasedVotingPower > 231 * 1e16);
-        // when you exchange 100 utility token, you will get 1 voting power
-        increasedVotingPower = votingPowerExchange.calculateIncreasedVotingPower(100 * 1e18, 100 * 1e18);
-        assertTrue(increasedVotingPower < 415 * 1e15);
-        assertTrue(increasedVotingPower > 413 * 1e15);
+        // when you exchange 6175 utility token and burned token is currently 1100 * 1e18, you will get 19 voting power
+        uint256 increasedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(6175 * 1e18, 1100 * 1e18);
+        assertEq(increasedVotingPower, 19 * 1e18);
+        // assertTrue(increasedVotingPower < 1383 * 1e17);
+        // assertTrue(increasedVotingPower > 1382 * 1e17);
+        // when you exchange 5100 utility token with current burned token as 25 * 1e18, you will get 24 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(5100 * 1e18, 25 * 1e18);
+        assertEq(increasedVotingPower, 24 * 1e18);
+        // when you exchange 300 utility token with current burned tokken as 9800 * 1e18, you will get less than 1 voting power
+        uint256 increasedVotingPower2 = votingPowerExchange.calculateIncrementedVotingPower(300 * 1e18, 9800 * 1e18);
+        assertTrue(increasedVotingPower2 < 1 * 1e18);
+        assertTrue(increasedVotingPower2 > 0);
+        // when you exchange 250 utility token with current burned token as 10_100 * 1e18, you will get a full 1 voting power to become level 36
+        increasedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(250 * 1e18, 10_100 * 1e18);
+        assertTrue(increasedVotingPower < 1 * 1e18);
+        assertTrue(increasedVotingPower > 0);
+        assertEq(increasedVotingPower + increasedVotingPower2, 1 * 1e18);
+        // when you exchange 75240 utility token with current burned token as 25, you will get 98~99 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(75240 * 1e18, 25 * 1e18);
+        assertTrue(increasedVotingPower < 99 * 1e18);
+        assertTrue(increasedVotingPower > 98 * 1e18);
+        // when you exchange 94350 utility token with current burned token as 65 * 1e18, you will get over 109~110 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(94350 * 1e18, 65 * 1e18);
+        assertTrue(increasedVotingPower < 110 * 1e18);
+        assertTrue(increasedVotingPower > 109 * 1e18);
+        // when you exchange 500 utility token with current burned token as 25 * 1e18, you will get 6~7 voting power
+        increasedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(500 * 1e18, 25 * 1e18);
+        assertTrue(increasedVotingPower < 7 * 1e18);
+        assertTrue(increasedVotingPower > 6 * 1e18);
     }
 
     // this test only run the test for the calculation of required amount to be burned function
-    function testCalculateRequiredAmountToBeBurnedWhenCurrentIsZero() public view {
-        // when you exchange 100 voting power, you need to burn 1_000_000 utility token
-        uint256 requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(100 * 1e18, 0);
-        assertEq(requiredAmount, 100_0000 * 1e18);
-        // when you exchange 10 voting power, you need to burn 10_000 utility token
-        requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(10 * 1e18, 0);
-        assertEq(requiredAmount, 10_000 * 1e18);
-        // when you exchange 3 voting power, you need to burn 1_000 utility token
-        requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(3 * 1e18, 0);
-        assertEq(requiredAmount, 900 * 1e18);
-        // when you exchange 1 voting power, you need to burn 100 utility token
-        requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(1 * 1e18, 0);
-        assertEq(requiredAmount, 100 * 1e18);
+    // function testCalculateRequiredAmountToBeBurnedWhenCurrentIsZero() public view {
+    //     // when you exchange 100 voting power, you need to burn 1_000_000 utility token
+    //     uint256 requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(100 * 1e18, 0);
+    //     assertEq(requiredAmount, 100_0000 * 1e18);
+    //     // when you exchange 10 voting power, you need to burn 10_000 utility token
+    //     requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(10 * 1e18, 0);
+    //     assertEq(requiredAmount, 10_000 * 1e18);
+    //     // when you exchange 3 voting power, you need to burn 1_000 utility token
+    //     requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(3 * 1e18, 0);
+    //     assertEq(requiredAmount, 900 * 1e18);
+    //     // when you exchange 1 voting power, you need to burn 100 utility token
+    //     requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(1 * 1e18, 0);
+    //     assertEq(requiredAmount, 100 * 1e18);
 
-        // when you exchange 90 voting power, you need to burn 810_000 utility token
-        requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(90 * 1e18, 0);
-        assertTrue(requiredAmount < 810_001 * 1e18);
-        assertTrue(requiredAmount > 809_999 * 1e18);
-    }
+    //     // when you exchange 90 voting power, you need to burn 810_000 utility token
+    //     requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(90 * 1e18, 0);
+    //     assertTrue(requiredAmount < 810_001 * 1e18);
+    //     assertTrue(requiredAmount > 809_999 * 1e18);
+    // }
 
-    function testCalculateRequiredAmountToBeBurnedWhenCurrentIsNotZero() public view {
-        // when you exchange 7 voting power with current burned token as 900 * 1e18, you need to burn 7 utility token
-        uint256 requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(7 * 1e18, 900 * 1e18);
-        assertEq(requiredAmount, 9100 * 1e18);
-        // when you exchange 10 voting power with token burned as 3600 * 1e18, you need to burn 22000 utility token
-        requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(10 * 1e18, 3_600 * 1e18);
-        assertEq(requiredAmount, 22_000 * 1e18);
-        // when you exchange 5 voting power with token burned as 22500 * 1e18, you need to burn 17500 utility token
-        requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(5 * 1e18, 22_500 * 1e18);
-        assertEq(requiredAmount, 17_500 * 1e18);
-        // when you exchange 20 voting power with token burned as 16_900 * 1e18, you need to burn 92_000 utility token
-        requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(20 * 1e18, 16_900 * 1e18);
-        assertEq(requiredAmount, 92_000 * 1e18);
-    }
+    // function testCalculateRequiredAmountToBeBurnedWhenCurrentIsNotZero() public view {
+    //     // when you exchange 7 voting power with current burned token as 900 * 1e18, you need to burn 7 utility token
+    //     uint256 requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(7 * 1e18, 900 * 1e18);
+    //     assertEq(requiredAmount, 9100 * 1e18);
+    //     // when you exchange 10 voting power with token burned as 3600 * 1e18, you need to burn 22000 utility token
+    //     requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(10 * 1e18, 3_600 * 1e18);
+    //     assertEq(requiredAmount, 22_000 * 1e18);
+    //     // when you exchange 5 voting power with token burned as 22500 * 1e18, you need to burn 17500 utility token
+    //     requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(5 * 1e18, 22_500 * 1e18);
+    //     assertEq(requiredAmount, 17_500 * 1e18);
+    //     // when you exchange 20 voting power with token burned as 16_900 * 1e18, you need to burn 92_000 utility token
+    //     requiredAmount = votingPowerExchange.calculateRequiredAmountToBeBurned(20 * 1e18, 16_900 * 1e18);
+    //     assertEq(requiredAmount, 92_000 * 1e18);
+    // }
 
     /////// Exchange tests ///////
 }

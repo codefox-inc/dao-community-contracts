@@ -100,7 +100,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         onlyRole(EXCHANGER_ROLE)
     {
         if (sender == address(0)) revert VotingPowerExchange__AddressIsZero();
-        if (amount < 1e15) revert VotingPowerExchange__AmountIsTooSmall();
+        if (amount < 1e15) revert VotingPowerExchange__AmountIsTooSmall(); // not allow toexchange less than 0.001 utility token
         if (authorizationState(sender, nonce)) revert VotingPowerExchange__InvalidNonce();
         if (block.timestamp > expiration) revert VotingPowerExchange__SignatureExpired();
         // check the current gove token balance of the sender
@@ -118,16 +118,17 @@ contract VotingPowerExchange is AccessControl, EIP712 {
 
         uint256 currentBurnedAmount = govToken.burnedAmountOfUtilToken(sender);
 
-        // TODO: change the logics here according to `calculateIncrementedVotingPower` etc
         // calculate the amount of voting power token amount to mint
-        // increased voting power = increased level = increased token amount of govToken
-        uint256 increasedVotingPower = calculateIncreasedVotingPower(amount, currentBurnedAmount);
+        // incremented voting power = increased level = increased token amount of govToken
+        uint256 incrementedVotingPower = calculateIncrementedVotingPower(amount, currentBurnedAmount);
 
         uint256 burningTokenAmount = amount;
         // check the level cap to make sure it can only reach the cap but not to be over it
-        if (currentVotingPower + increasedVotingPower > votingPowerCap) {
-            increasedVotingPower = votingPowerCap - currentVotingPower;
-            burningTokenAmount = calculateRequiredAmountToBeBurned(increasedVotingPower, currentBurnedAmount);
+        if (currentVotingPower + incrementedVotingPower > votingPowerCap) {
+            // if the incremented voting power is over the cap, set the incremented voting power to `cap - currentVotingPower`
+            incrementedVotingPower = votingPowerCap - currentVotingPower;
+            // calculate the burning token amount based on the incremented voting power
+            burningTokenAmount = calculateIncrementedBurningAmount(incrementedVotingPower, currentBurnedAmount);
         }
 
         // burn utilityToken from the `sender`
@@ -137,8 +138,8 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         govToken.setBurnedAmountOfUtilToken(sender, currentBurnedAmount + burningTokenAmount);
 
         // mint govToken to the user and emit event
-        govToken.mint(sender, increasedVotingPower);
-        emit VotingPowerReceived(msg.sender, burningTokenAmount, increasedVotingPower);
+        govToken.mint(sender, incrementedVotingPower);
+        emit VotingPowerReceived(msg.sender, burningTokenAmount, incrementedVotingPower);
     }
 
     /**
@@ -174,72 +175,27 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     ////////////////////////////////////
     /////// pure/view functions ////////
     ////////////////////////////////////
-    // TODO: delete this function
-    /**
-     * @notice Calculate the increased voting power based on the amount of utility token to burn
-     * @dev This function calculates the increased voting power based on the square root of the burned amount
-     * @dev The formula is: `(sqrt(currentBurnedAmount + amount) - sqrt(currentBurnedAmount)) / 10`, which allows this to happen: e.g. 1,000,000 utility token can be burned to get 100 voting power.
-     * @param amount The amount of utility token to burn
-     * @param currentBurnedAmount The current burned amount of the user
-     * @return increasedVotingPower The increased voting power
-     */
-    function calculateIncreasedVotingPower(uint256 amount, uint256 currentBurnedAmount) public pure returns (uint256) {
-        uint256 increasedVotingPower = (
-            Math.sqrt((currentBurnedAmount + amount) * PRECISION) - Math.sqrt(currentBurnedAmount * PRECISION)
-        ) / PRECISION_FACTOR;
-        return increasedVotingPower;
-    }
-
-    // TODO: delete this function
-    /**
-     * @notice Calculate the amount of tokens to burn (amount) to achieve the desired increased voting power
-     * @dev This function calculates the amount based on the reverse calculation of the `calculateIncreasedVotingPower` function
-     * @param increasedVotingPower The desired increased level
-     * @param currentBurnedAmount The current burned amount of the user
-     * @return amount The amount of tokens to be burned
-     */
-    function calculateRequiredAmountToBeBurned(uint256 increasedVotingPower, uint256 currentBurnedAmount)
-        public
-        pure
-        returns (uint256)
-    {
-        // calculate sqrt(currentBurnedAmount * PRECISION)
-        uint256 sqrtCurrent = Math.sqrt(currentBurnedAmount * PRECISION);
-        // calculate increasedVotingPower * PRECISION_FACTOR
-        uint256 votingPowerWithPrecision = increasedVotingPower * PRECISION_FACTOR;
-        // calculate new sqrt
-        uint256 sqrtNew = sqrtCurrent + votingPowerWithPrecision;
-        // calculate new sqrt's power 2 and set its prEcision as 18
-        uint256 sqrtNewSquared = (sqrtNew * sqrtNew) / PRECISION;
-        // calculate the final amount
-        uint256 amount = sqrtNewSquared - currentBurnedAmount;
-        return amount;
-    }
-
-    // TODO: test this function
     /**
      * @notice Calculate the increased voting power based on the amount of utility token to burn
      * @dev This function calculates the increased voting power based on the difference of the voting power from the burned amount
-     * @param amount The amount of utility token to burn
+     * @param incrementedAmount The amount of utility token to burn
      * @param currentBurnedAmount The current burned amount of the user
      * @return increasedVotingPower The increased voting power
      */
-    function calculateIncrementedVotingPower(uint256 amount, uint256 currentBurnedAmount)
+    function calculateIncrementedVotingPower(uint256 incrementedAmount, uint256 currentBurnedAmount)
         public
         pure
         returns (uint256)
     {
-        return calculateVotingPowerFromBurnedAmount(amount + currentBurnedAmount)
+        return calculateVotingPowerFromBurnedAmount(incrementedAmount + currentBurnedAmount)
             - calculateVotingPowerFromBurnedAmount(currentBurnedAmount);
     }
 
-    // TODO: test this function
     /**
      * @notice Calculate the voting power based on the burned amount
      * @dev This function calculates the voting power based on the burned amount
      * @dev The formula is: `(2*SQRT(306.25 + 30*x) - 5) / 30 - 1`, which means: e.g. 3,350 utility token can be burned to get 20 voting power.
-     * @dev 0 utility token burned menas getting 0 voting power.
-     * @dev If the amount is less than 12e8, the result will be 0.
+     * @dev 0 utility token burned menas getting 0 voting power. And if the amount is less than 12e8, the result will be 0.
      * @param amount The amount of utility token to burn
      * @return votingPower The voting power
      */
@@ -254,16 +210,28 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     }
 
     // TODO: test this function
-    function calculateIncrementedBurningAmount(uint256 increasedVotingPower, uint256 currentVotingPower)
+    /**
+     * @notice Calculate the incremented burning amount based on the incremented voting power
+     * @dev This function calculates the incremented burning amount based on the incremented voting power
+     * @param incrementedVotingPower The incremented voting power
+     * @param currentVotingPower The current voting power
+     * @return incrementedBurningAmount The incremented burning amount
+     */
+    function calculateIncrementedBurningAmount(uint256 incrementedVotingPower, uint256 currentVotingPower)
         public
         pure
         returns (uint256)
     {
-        return calculateBurningAmountFromVotingPower(currentVotingPower + increasedVotingPower)
+        return calculateBurningAmountFromVotingPower(currentVotingPower + incrementedVotingPower)
             - calculateBurningAmountFromVotingPower(currentVotingPower);
     }
 
-    // TODO: test this function
+    /**
+     * @notice Calculate the burning amount based on the voting power
+     * @dev This function calculates the burning amount based on the voting power
+     * @param votingPowerAmount The amount of voting power
+     * @return burningAmount The burning amount
+     */
     function calculateBurningAmountFromVotingPower(uint256 votingPowerAmount) public pure returns (uint256) {
         // calculate this: y = (15*x^2+35*x)/2
         uint256 term = 15 * (votingPowerAmount * votingPowerAmount) / PRECISION + 35 * votingPowerAmount;
