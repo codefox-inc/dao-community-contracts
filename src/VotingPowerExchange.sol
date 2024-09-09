@@ -128,7 +128,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
             // if the incremented voting power is over the cap, set the incremented voting power to `cap - currentVotingPower`
             incrementedVotingPower = votingPowerCap - currentVotingPower;
             // calculate the burning token amount based on the incremented voting power
-            burningTokenAmount = calculateIncrementedBurningAmount(incrementedVotingPower, currentBurnedAmount);
+            burningTokenAmount = calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
         }
 
         // burn utilityToken from the `sender`
