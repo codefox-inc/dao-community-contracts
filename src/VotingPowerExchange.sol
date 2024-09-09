@@ -25,6 +25,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     error VotingPowerExchange__HighestIdIsTooHigh();
     error VotingPowerExchange__AddressIsZero();
     error VotingPowerExchange__GovOrUtilAddressIsZero();
+    error VotingPowerExchange__AmountIsTooSmall();
     error VotingPowerExchange__InvalidNonce();
     error VotingPowerExchange__SignatureExpired();
     error VotingPowerExchange__InvalidSignature();
@@ -87,6 +88,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
      * @dev The main function of this contract.
      * @dev The user must sign the exchange message with the sender address, amount and nonce.
      * @dev Using EIP-712 to validate the signature.
+     * @dev The amount of utilityToken to exchange must be greater than 1e15 to avoid the pricision loss in the calculation.
      * @param sender The address of the user who wants to exchange utilityToken for voting power token.
      * @param amount The amount of utilityToken to exchange.
      * @param nonce The nonce to prevent replay attacks.
@@ -98,7 +100,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         onlyRole(EXCHANGER_ROLE)
     {
         if (sender == address(0)) revert VotingPowerExchange__AddressIsZero();
-        if (amount == 0) revert VotingPowerExchange__AmountIsZero();
+        if (amount < 1e15) revert VotingPowerExchange__AmountIsTooSmall();
         if (authorizationState(sender, nonce)) revert VotingPowerExchange__InvalidNonce();
         if (block.timestamp > expiration) revert VotingPowerExchange__SignatureExpired();
         // check the current gove token balance of the sender
@@ -237,6 +239,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
      * @dev This function calculates the voting power based on the burned amount
      * @dev The formula is: `(2*SQRT(306.25 + 30*x) - 5) / 30 - 1`, which means: e.g. 3,350 utility token can be burned to get 20 voting power.
      * @dev 0 utility token burned menas getting 0 voting power.
+     * @dev If the amount is less than 12e8, the result will be 0.
      * @param amount The amount of utility token to burn
      * @return votingPower The voting power
      */
@@ -247,6 +250,24 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         uint256 sqrtPart = 2 * Math.sqrt(innerValue) * PRECISION_FIX;
         // calculate (2*SQRT(306.25+30*x)-5)/30 - 1
         uint256 result = (uint256(sqrtPart) - 5 * PRECISION) / 30 - PRECISION;
+        return result;
+    }
+
+    // TODO: test this function
+    function calculateIncrementedBurningAmount(uint256 increasedVotingPower, uint256 currentVotingPower)
+        public
+        pure
+        returns (uint256)
+    {
+        return calculateBurningAmountFromVotingPower(currentVotingPower + increasedVotingPower)
+            - calculateBurningAmountFromVotingPower(currentVotingPower);
+    }
+
+    // TODO: test this function
+    function calculateBurningAmountFromVotingPower(uint256 votingPowerAmount) public pure returns (uint256) {
+        // calculate this: y = (15*x^2+35*x)/2
+        uint256 term = 15 * (votingPowerAmount * votingPowerAmount) / PRECISION + 35 * votingPowerAmount;
+        uint256 result = term / 2;
         return result;
     }
 
