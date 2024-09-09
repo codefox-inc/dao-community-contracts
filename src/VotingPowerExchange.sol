@@ -28,7 +28,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     error VotingPowerExchange__AmountIsTooSmall();
     error VotingPowerExchange__InvalidNonce();
     error VotingPowerExchange__SignatureExpired();
-    error VotingPowerExchange__InvalidSignature();
+    error VotingPowerExchange__InvalidSignature(bytes32 digest, bytes signature);
     error VotingPowerExchange__LevelIsLowerThanExisting();
     error VotingPowerExchange__VotingPowerIsHigherThanCap(uint256 currentVotingPower);
 
@@ -111,7 +111,9 @@ contract VotingPowerExchange is AccessControl, EIP712 {
 
         // create the digest for EIP-712 and validate the signature by the `sender`
         bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(_EXCHANGE_TYPEHASH, sender, amount, nonce, expiration)));
-        if (!sender.isValidSignatureNow(digest, signature)) revert VotingPowerExchange__InvalidSignature();
+        if (!sender.isValidSignatureNow(digest, signature)) {
+            revert VotingPowerExchange__InvalidSignature(digest, signature);
+        }
 
         // set the nonce as true after validating the signature
         _authorizationStates[sender][nonce] = true;

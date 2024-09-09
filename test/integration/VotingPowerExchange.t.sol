@@ -10,6 +10,7 @@ import {ERC20UpgradeableTokenV1} from "src/ERC20UpgradeableTokenV1.sol";
 import {GovToken} from "src/GovToken.sol";
 import {VotingPowerExchange} from "src/VotingPowerExchange.sol";
 import {VotingPowerExchangeTestHelper} from "./utils/VotingPowerExchangeTestHelper.t.sol";
+import {MessageHashUtils} from "lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract VotingPwoerExchangeTest is Test {
     // instances
@@ -396,17 +397,69 @@ contract VotingPwoerExchangeTest is Test {
     }
 
     /////// Exchange tests ///////
-    function testExchangeCase1() public {
+    function testExchangeSuccessCase() public {
         bytes32 nonce = bytes32(0);
         console.log(block.chainid);
         console.log("Signer address:", vm.addr(dc.DEFAULT_ANVIL_KEY2()));
         console.log("participant2 address:", participant2);
 
-        bytes memory signature = helper.generateSignatureFromPrivateKey(dc.DEFAULT_ANVIL_KEY2(), 1_000 * 1e18, nonce,  3600, address(votingPowerExchange));
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, 3600, address(votingPowerExchange)
+        );
         address signer = vm.addr(dc.DEFAULT_ANVIL_KEY2());
         vm.startPrank(exchanger);
-        votingPowerExchange.exchange(signer, 1_000 * 1e18, nonce, 3600, signature);
+        votingPowerExchange.exchange(signer, 1_100 * 1e18, nonce, 3600, signature);
         vm.stopPrank();
 
+        assertEq(govToken.balanceOf(signer), 11 * 1e18);
+        assertEq(utilityToken.balanceOf(signer), 8_900 * 1e18);
+    }
+
+    function testExchangeFailCaseWhenSginatureExpired() public {
+        bytes32 nonce = bytes32(0);
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, 3600, address(votingPowerExchange)
+        );
+        vm.warp(block.timestamp + 3601);
+        address signer = vm.addr(dc.DEFAULT_ANVIL_KEY2());
+        vm.startPrank(exchanger);
+        vm.expectRevert(VotingPowerExchange.VotingPowerExchange__SignatureExpired.selector);
+        votingPowerExchange.exchange(signer, 1_100 * 1e18, nonce, 3600, signature);
+        vm.stopPrank();
+    }
+
+    function testExchangeFailCaseWhenSenderIsNotSigner() public {
+        bytes32 nonce = bytes32(0);
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, 3600, address(votingPowerExchange)
+        );
+        address invalidSigner = makeAddr("invalidSigner");
+        vm.startPrank(exchanger);
+        bytes32 digest = createDigest(invalidSigner, 1_100 * 1e18, nonce, 3600);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                VotingPowerExchange.VotingPowerExchange__InvalidSignature.selector, digest, signature
+            )
+        );
+        votingPowerExchange.exchange(invalidSigner, 1_100 * 1e18, nonce, 3600, signature);
+        vm.stopPrank();
+    }
+
+    function createDigest(address sender, uint256 amount, bytes32 nonce, uint256 expiration)
+        internal
+        view
+        returns (bytes32)
+    {
+        bytes32 structHash = keccak256(abi.encode(helper._EXCHANGE_TYPEHASH(), sender, amount, nonce, expiration));
+        bytes32 domainSeparator = keccak256(
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes("VotingPowerExchange")),
+                keccak256(bytes("1")),
+                block.chainid,
+                address(votingPowerExchange)
+            )
+        );
+        return MessageHashUtils.toTypedDataHash(domainSeparator, structHash);
     }
 }

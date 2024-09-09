@@ -9,14 +9,16 @@ import {VotingPowerExchange} from "src/VotingPowerExchange.sol";
 import {MessageHashUtils} from "lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract VotingPowerExchangeTestHelper is Test {
-    bytes32 private constant _EXCHANGE_TYPEHASH =
+    bytes32 public constant _EXCHANGE_TYPEHASH =
         keccak256("Exchange(address sender,uint256 amount,bytes32 nonce,uint256 expiration)");
 
-    function generateSignatureFromPrivateKey(uint256 privateKey, uint256 amount, bytes32 nonce, uint256 expiration, address exchangeAddr)
-        public
-        view
-        returns (bytes memory)
-    {
+    function generateSignatureFromPrivateKey(
+        uint256 privateKey,
+        uint256 amount,
+        bytes32 nonce,
+        uint256 expiration,
+        address exchangeAddr
+    ) public view returns (bytes memory, bytes32) {
         address sender = vm.addr(privateKey);
         console.log("sender", sender);
         bytes32 structHash = keccak256(abi.encode(_EXCHANGE_TYPEHASH, sender, amount, nonce, expiration));
@@ -35,6 +37,6 @@ contract VotingPowerExchangeTestHelper is Test {
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, hash);
 
-        return abi.encodePacked(r, s, v);
+        return (abi.encodePacked(r, s, v), hash);
     }
 }
