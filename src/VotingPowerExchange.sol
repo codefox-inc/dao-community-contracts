@@ -132,7 +132,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         }
 
         // burn utilityToken from the `sender`
-        utilityToken.burnByBurner(msg.sender, burningTokenAmount);
+        utilityToken.burnByBurner(sender, burningTokenAmount);
 
         // update the burned amount of the `sender`
         govToken.setBurnedAmountOfUtilToken(sender, currentBurnedAmount + burningTokenAmount);

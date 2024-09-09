@@ -129,6 +129,7 @@ contract DeployContracts is Script {
         govToken.grantRole(govToken.MINTER_ROLE(), address(votingPowerExchange));
         // give exchange the burner role of utilityToken
         utilityToken.grantRole(utilityToken.BURNER_ROLE(), address(votingPowerExchange));
+        govToken.grantRole(govToken.VOTING_POWER_EXCHANGE_ROLE(), address(votingPowerExchange));
         vm.stopPrank();
 
         return DeploymentResult({

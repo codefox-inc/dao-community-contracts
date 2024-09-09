@@ -398,9 +398,15 @@ contract VotingPwoerExchangeTest is Test {
     /////// Exchange tests ///////
     function testExchangeCase1() public {
         bytes32 nonce = bytes32(0);
-        bytes memory signature = helper.generateSignatureFromPrivateKey(dc.DEFAULT_ANVIL_KEY2(), 620 * 1e18, nonce, block.timestamp + 3600);
+        console.log(block.chainid);
+        console.log("Signer address:", vm.addr(dc.DEFAULT_ANVIL_KEY2()));
+        console.log("participant2 address:", participant2);
+
+        bytes memory signature = helper.generateSignatureFromPrivateKey(dc.DEFAULT_ANVIL_KEY2(), 1_000 * 1e18, nonce,  3600, address(votingPowerExchange));
+        address signer = vm.addr(dc.DEFAULT_ANVIL_KEY2());
         vm.startPrank(exchanger);
-        votingPowerExchange.exchange(participant, 100_000 * 1e18, nonce, block.timestamp + 3600, signature);
+        votingPowerExchange.exchange(signer, 1_000 * 1e18, nonce, 3600, signature);
         vm.stopPrank();
+
     }
 }
