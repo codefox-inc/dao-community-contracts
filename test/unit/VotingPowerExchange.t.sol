@@ -14,10 +14,10 @@ contract VotingPowerExchangeUnitTest is Test {
             new VotingPowerExchange(address(this), address(this), address(this), address(this), address(this));
     }
 
-    function testConstructorValidation() public  {
+    function testConstructorValidation() public {
         // write a test to deploy the contract and test the validation in the constructor
         vm.expectRevert(VotingPowerExchange.VotingPowerExchange__DefaultAdminCannotBeZero.selector);
-        new VotingPowerExchange(address(1),address(1), address(0), address(0), address(0));
+        new VotingPowerExchange(address(1), address(1), address(0), address(0), address(0));
         vm.expectRevert(VotingPowerExchange.VotingPowerExchange__GovOrUtilAddressIsZero.selector);
         new VotingPowerExchange(address(1), address(0), address(1), address(0), address(0));
         vm.expectRevert(VotingPowerExchange.VotingPowerExchange__GovOrUtilAddressIsZero.selector);

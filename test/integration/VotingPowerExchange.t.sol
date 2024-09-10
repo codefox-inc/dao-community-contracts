@@ -561,7 +561,7 @@ contract VotingPwoerExchangeTest is Test {
             )
         );
         votingPowerExchange.exchange(participant2, 1_100 * 1e18, nonce, expirationTime, signature);
-        // no state change this time, so the authorization state should be false. Others are the same as before. 
+        // no state change this time, so the authorization state should be false. Others are the same as before.
         checkExchangeResult(
             participant2, 99 * 1e18, 115_240 * 1e18 - 75_240 * 1e18, 75_240 * 1e18, participant, 0, nonce, false
         );
@@ -587,7 +587,7 @@ contract VotingPwoerExchangeTest is Test {
         );
         vm.startPrank(exchanger);
         vm.expectRevert(VotingPowerExchange.VotingPowerExchange__AmountIsTooSmall.selector);
-        votingPowerExchange.exchange(participant2,  9e14, nonce, expirationTime, signature);
+        votingPowerExchange.exchange(participant2, 9e14, nonce, expirationTime, signature);
         vm.stopPrank();
     }
 
@@ -647,7 +647,11 @@ contract VotingPwoerExchangeTest is Test {
         );
         bytes32 digest = createDigest(participant2, 1_100 * 1e18, nonce, expirationTime);
         vm.startPrank(exchanger);
-vm.expectRevert(abi.encodeWithSelector(VotingPowerExchange.VotingPowerExchange__InvalidSignature.selector, digest, signature));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                VotingPowerExchange.VotingPowerExchange__InvalidSignature.selector, digest, signature
+            )
+        );
         votingPowerExchange.exchange(participant2, 1_100 * 1e18, nonce, expirationTime, signature);
         vm.stopPrank();
     }
