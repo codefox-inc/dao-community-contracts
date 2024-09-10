@@ -13,7 +13,7 @@ import {VotingPowerExchangeTestHelper} from "../integration/utils/VotingPowerExc
 import {MessageHashUtils} from "lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract VotingPwoerExchangeTest is Test {
-     // instances
+    // instances
     GovToken public govToken;
     ERC20UpgradeableTokenV1 public utilityToken;
     VotingPowerExchange public votingPowerExchange;
@@ -75,6 +75,5 @@ contract VotingPwoerExchangeTest is Test {
         vm.label(user2, "user2");
     }
 
-    function testFuzz_exchange(uint256 amount) public {
-    }
+    function testFuzz_exchange(uint256 amount) public {}
 }
