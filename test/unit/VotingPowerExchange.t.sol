@@ -14,6 +14,16 @@ contract VotingPowerExchangeUnitTest is Test {
             new VotingPowerExchange(address(this), address(this), address(this), address(this), address(this));
     }
 
+    function testConstructorValidation() public  {
+        // write a test to deploy the contract and test the validation in the constructor
+        vm.expectRevert(VotingPowerExchange.VotingPowerExchange__DefaultAdminCannotBeZero.selector);
+        new VotingPowerExchange(address(1),address(1), address(0), address(0), address(0));
+        vm.expectRevert(VotingPowerExchange.VotingPowerExchange__GovOrUtilAddressIsZero.selector);
+        new VotingPowerExchange(address(1), address(0), address(1), address(0), address(0));
+        vm.expectRevert(VotingPowerExchange.VotingPowerExchange__GovOrUtilAddressIsZero.selector);
+        new VotingPowerExchange(address(0), address(1), address(1), address(0), address(0));
+    }
+
     function testSpecialCasesForCalculateVotingPowerFromBurnedAmount() public view {
         // test case 1: 1950 * 1e18 -> 15 * 1e18
         uint256 amount1 = 1950 * 1e18;

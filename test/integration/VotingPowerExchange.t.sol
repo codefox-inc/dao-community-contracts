@@ -507,8 +507,10 @@ contract VotingPwoerExchangeTest is Test {
         votingPowerExchange.exchange(participant2, 2_200 * 1e18, nonce, expirationTime, signature);
         vm.stopPrank();
         // check result for once
-        checkExchangeResult(participant2, 16 * 1e18, 85_240 * 1e18 - 2_200 * 1e18, 2_200 * 1e18, participant, 0, nonce, true);
-        
+        checkExchangeResult(
+            participant2, 16 * 1e18, 85_240 * 1e18 - 2_200 * 1e18, 2_200 * 1e18, participant, 0, nonce, true
+        );
+
         nonce = keccak256("1");
         // when you exchange 73_040 utility token, you will get 98 voting power
         (bytes memory signature2,) = helper.generateSignatureFromPrivateKey(
@@ -519,10 +521,52 @@ contract VotingPwoerExchangeTest is Test {
         emit VotingPowerExchange.VotingPowerReceived(participant2, 73_040 * 1e18, 83 * 1e18);
         votingPowerExchange.exchange(participant2, 73_040 * 1e18, nonce, expirationTime, signature2);
         vm.stopPrank();
-        checkExchangeResult(participant2, 99 * 1e18, 85_240 * 1e18 - 75_240 * 1e18, 75_240 * 1e18, participant, 0, nonce, true);
+        checkExchangeResult(
+            participant2, 99 * 1e18, 85_240 * 1e18 - 75_240 * 1e18, 75_240 * 1e18, participant, 0, nonce, true
+        );
     }
 
     ////// test failure cases //////
+    /// failure cuz of reaching cap ///
+    // test description: this test means that when you exchange more than 75_240 utility token, you will only get 99 voting power token.
+    // At the same time, you can only burn 75_240 utility token which matches the 99 voting power token's burning amount to get the gov token itself.
+    function testExchangeTwiceToCrossVotingPowerCapFailureCase() public {
+        vm.prank(minter);
+        // user has already got 10_000 utility token
+        utilityToken.mint(participant2, 105_240 * 1e18);
+        bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 105_240 * 1e18, nonce, expirationTime, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        // when you exchange more than 75_240 utility token, you will get 16 voting power
+        vm.expectEmit();
+        emit VotingPowerExchange.VotingPowerReceived(participant2, 75_240 * 1e18, 99 * 1e18);
+        votingPowerExchange.exchange(participant2, 105_240 * 1e18, nonce, expirationTime, signature);
+        vm.stopPrank();
+        // check result of this:
+        // Participant2 receives 99 governance tokens, has 115_240 * 1e18 - 75_240 * 1e18 utility tokens remaining,
+        // has burned 75_240 utility tokens, and uses a specific nonce, which is used, so the authorization state should be true
+        // Participant has burned 0 utility token
+        checkExchangeResult(
+            participant2, 99 * 1e18, 115_240 * 1e18 - 75_240 * 1e18, 75_240 * 1e18, participant, 0, nonce, true
+        );
+        // under this circumstance, the user cannot call the exchange function anymore and it will revert and make sure the user do not cost his utility token when calling the exchange function
+        nonce = keccak256("1");
+        vm.prank(exchanger);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                VotingPowerExchange.VotingPowerExchange__VotingPowerIsHigherThanCap.selector, 99 * 1e18
+            )
+        );
+        votingPowerExchange.exchange(participant2, 1_100 * 1e18, nonce, expirationTime, signature);
+        // no state change this time, so the authorization state should be false. Others are the same as before. 
+        checkExchangeResult(
+            participant2, 99 * 1e18, 115_240 * 1e18 - 75_240 * 1e18, 75_240 * 1e18, participant, 0, nonce, false
+        );
+    }
+
     function testExchangeFailsWhenSenderIsZeroAddress() public {
         bytes32 nonce = bytes32(0);
         uint256 expirationTime = 3600;
@@ -532,6 +576,36 @@ contract VotingPwoerExchangeTest is Test {
         vm.startPrank(exchanger);
         vm.expectRevert(VotingPowerExchange.VotingPowerExchange__AddressIsZero.selector);
         votingPowerExchange.exchange(address(0), 1_100 * 1e18, nonce, expirationTime, signature);
+        vm.stopPrank();
+    }
+
+    function testExchangeFailCaseWhenAmountIsTooSmall() public {
+        bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 9e14, nonce, expirationTime, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        vm.expectRevert(VotingPowerExchange.VotingPowerExchange__AmountIsTooSmall.selector);
+        votingPowerExchange.exchange(participant2,  9e14, nonce, expirationTime, signature);
+        vm.stopPrank();
+    }
+
+    function testExchangeFailCaseWhenNonceIsUsed() public {
+        bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, expirationTime, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        votingPowerExchange.exchange(participant2, 1_100 * 1e18, nonce, expirationTime, signature);
+
+        // the nonce is used so it will revert if it is used again
+        (bytes memory signature2,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 100 * 1e18, nonce, expirationTime, address(votingPowerExchange)
+        );
+        vm.expectRevert(VotingPowerExchange.VotingPowerExchange__InvalidNonce.selector);
+        votingPowerExchange.exchange(participant2, 100 * 1e18, nonce, expirationTime, signature2);
         vm.stopPrank();
     }
 
@@ -562,6 +636,41 @@ contract VotingPwoerExchangeTest is Test {
             )
         );
         votingPowerExchange.exchange(invalidSigner, 1_100 * 1e18, nonce, 3600, signature);
+        vm.stopPrank();
+    }
+
+    function testExchangeFailCaseWhenSignatureIsInvalid() public {
+        bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_10 * 1e18, nonce, expirationTime, address(votingPowerExchange)
+        );
+        bytes32 digest = createDigest(participant2, 1_100 * 1e18, nonce, expirationTime);
+        vm.startPrank(exchanger);
+vm.expectRevert(abi.encodeWithSelector(VotingPowerExchange.VotingPowerExchange__InvalidSignature.selector, digest, signature));
+        votingPowerExchange.exchange(participant2, 1_100 * 1e18, nonce, expirationTime, signature);
+        vm.stopPrank();
+    }
+
+    function testExchangeFailCaseWhenUserGotMoreThanVotingPowerCap() public {
+        vm.prank(minter);
+        // user has already got 10_000 utility token
+        utilityToken.mint(participant2, 105_240 * 1e18);
+        vm.prank(minter);
+        govToken.mint(participant2, 101 * 1e18);
+
+        bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 105_240 * 1e18, nonce, expirationTime, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                VotingPowerExchange.VotingPowerExchange__VotingPowerIsHigherThanCap.selector, 101 * 1e18
+            )
+        );
+        votingPowerExchange.exchange(participant2, 105_240 * 1e18, nonce, expirationTime, signature);
         vm.stopPrank();
     }
 
