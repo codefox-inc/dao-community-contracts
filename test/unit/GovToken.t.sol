@@ -200,7 +200,7 @@ contract GovTokenTest is Test {
         assertEq(govToken.burnedAmountOfUtilToken(user2), 100 ether);
     }
 
-    function testNonRoleCannnotCallSetBurnedAmountOfUtilToken() public {
+    function testNonRoleCannotCallSetBurnedAmountOfUtilToken() public {
         vm.startPrank(user);
         vm.expectRevert();
         govToken.setBurnedAmountOfUtilToken(user, 100 ether);
