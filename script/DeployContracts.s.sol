@@ -46,8 +46,6 @@ contract DeployContracts is Script {
     address public constant ZERO_ADDRESS = address(0);
 
     function run() public returns (DeploymentResult memory) {
-        console.log("Default anvil key2: %d", DEFAULT_ANVIL_KEY2);
-        console.log("chainid: %d", block.chainid);
         // local netwrok
         if (block.chainid == 31337) {
             console.log("Deploying contracts on the local testnet");
@@ -129,6 +127,7 @@ contract DeployContracts is Script {
         govToken.grantRole(govToken.MINTER_ROLE(), address(votingPowerExchange));
         // give exchange the burner role of utilityToken
         utilityToken.grantRole(utilityToken.BURNER_ROLE(), address(votingPowerExchange));
+        // give exchange the voting power exchange role of govToken
         govToken.grantRole(govToken.VOTING_POWER_EXCHANGE_ROLE(), address(votingPowerExchange));
         vm.stopPrank();
 

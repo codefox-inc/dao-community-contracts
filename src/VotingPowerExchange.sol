@@ -76,7 +76,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(MANAGER_ROLE, manager);
         _grantRole(EXCHANGER_ROLE, exchanger);
-        _setVotingPowerCap(100 * 1e18);
+        _setVotingPowerCap(99 * 1e18);
     }
 
     ////////////////////////////////////////////
@@ -91,7 +91,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
      * @dev The amount of utilityToken to exchange must be greater than 1e15 to avoid the pricision loss in the calculation.
      * @param sender The address of the user who wants to exchange utilityToken for voting power token.
      * @param amount The amount of utilityToken to exchange.
-     * @param nonce The nonce to prevent replay attacks.
+     * @param nonce The nonce which is used to prevent replay attacks.
      * @param expiration The expiration time of the signature.
      * @param signature The signature of the user to validate the voting power exchanging intention.
      */
@@ -117,7 +117,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
 
         // set the nonce as true after validating the signature
         _authorizationStates[sender][nonce] = true;
-
+        // get the current burned amount of utility token
         uint256 currentBurnedAmount = govToken.burnedAmountOfUtilToken(sender);
 
         // calculate the amount of voting power token amount to mint
@@ -141,7 +141,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
 
         // mint govToken to the user and emit event
         govToken.mint(sender, incrementedVotingPower);
-        emit VotingPowerReceived(msg.sender, burningTokenAmount, incrementedVotingPower);
+        emit VotingPowerReceived(sender, burningTokenAmount, incrementedVotingPower);
     }
 
     /**

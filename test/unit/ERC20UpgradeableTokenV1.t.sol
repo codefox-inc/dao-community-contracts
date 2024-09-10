@@ -150,7 +150,7 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(token.allowance(holder, user), 100 ether);
     }
 
-    function testApprovingAndTrasnferFrom() public {
+    function testApprovingAndTransferFrom() public {
         vm.prank(holder);
         token.approve(user, 100 ether);
         vm.prank(user);
@@ -161,7 +161,7 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(token.allowance(holder, user), 0 ether);
     }
 
-    function testApprovingAllAndTrasnferFromAll() public {
+    function testApprovingAllAndTransferFromAll() public {
         vm.prank(holder);
         token.approve(user, 1000 ether);
         vm.prank(user);

@@ -206,7 +206,7 @@ contract VotingPwoerExchangeTest is Test {
         VotingPowerExchange vpe =
             new VotingPowerExchange(address(utilityToken), address(govToken), admin, manager, exchanger);
         assertTrue(address(vpe) != address(0));
-        assertEq(vpe.getVotingPowerCap(), 100 * 1e18);
+        assertEq(vpe.getVotingPowerCap(), 99 * 1e18);
     }
 
     function teestBasicVotingPowerExchangeInfo() public view {
@@ -229,14 +229,14 @@ contract VotingPwoerExchangeTest is Test {
 
     function testVotingPowerCap() public view {
         uint256 cap = votingPowerExchange.getVotingPowerCap();
-        assertEq(cap, 100 * 1e18);
+        assertEq(cap, 99 * 1e18);
     }
 
     function testSettingVotingPowerCap() public {
         uint256 cap = votingPowerExchange.getVotingPowerCap();
-        assertEq(cap, 100 * 1e18);
+        assertEq(cap, 99 * 1e18);
 
-        uint256 newCap = 110 * 1e18;
+        uint256 newCap = 109 * 1e18;
         vm.startPrank(manager);
         vm.expectEmit();
         emit VotingPowerExchange.VotingPowerCapSet(newCap);
@@ -258,7 +258,7 @@ contract VotingPwoerExchangeTest is Test {
 
         vm.prank(manager);
         vm.expectRevert(VotingPowerExchange.VotingPowerExchange__LevelIsLowerThanExisting.selector);
-        votingPowerExchange.setVotingPowerCap(100 * 1e18);
+        votingPowerExchange.setVotingPowerCap(90 * 1e18);
     }
 
     // this test only run the test for the calculation of increased voting power function
@@ -396,35 +396,122 @@ contract VotingPwoerExchangeTest is Test {
         assertEq(requiredAmount, 610 * 1e18);
     }
 
+    //////////////////////////////
     /////// Exchange tests ///////
-    function testExchangeSuccessCase() public {
+    //////////////////////////////
+    ////// test success cases //////
+    function testExchangeMediumAmountSuccessCase() public {
         bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
         console.log(block.chainid);
         console.log("Signer address:", vm.addr(dc.DEFAULT_ANVIL_KEY2()));
         console.log("participant2 address:", participant2);
 
         (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
-            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, 3600, address(votingPowerExchange)
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, expirationTime, address(votingPowerExchange)
         );
-        address signer = vm.addr(dc.DEFAULT_ANVIL_KEY2());
         vm.startPrank(exchanger);
-        votingPowerExchange.exchange(signer, 1_100 * 1e18, nonce, 3600, signature);
+        // when you exchange 1_100 utility token, you will get 11 voting power
+        vm.expectEmit();
+        emit VotingPowerExchange.VotingPowerReceived(participant2, 1_100 * 1e18, 11 * 1e18);
+        votingPowerExchange.exchange(participant2, 1_100 * 1e18, nonce, expirationTime, signature);
         vm.stopPrank();
 
-        assertEq(govToken.balanceOf(signer), 11 * 1e18);
-        assertEq(utilityToken.balanceOf(signer), 8_900 * 1e18);
+        // Check the result of the exchange:
+        // Participant2 receives 11 governance tokens, has 8_900 utility tokens remaining,
+        // has burned 1_100 utility tokens, and uses a specific nonce, which is used, so the authorization state should be true
+        // Participant has burned 0 utility token
+        checkExchangeResult(participant2, 11 * 1e18, 8_900 * 1e18, 1_100 * 1e18, address(participant), 0, nonce, true);
+    }
+
+    function testExchangeSmallAmountSuccessCase() public {
+        bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1 * 1e18, nonce, expirationTime, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        // when you exchange 1_100 utility token, you will get 11 voting power
+        vm.expectEmit();
+        emit VotingPowerExchange.VotingPowerReceived(participant2, 1 * 1e18, 55808054666666666);
+        votingPowerExchange.exchange(participant2, 1 * 1e18, nonce, expirationTime, signature);
+        vm.stopPrank();
+
+        // Participant2 receives 5.5808054666666666e16 voting power, has 10_000 * 1e18 - 1 * 1e18 utility tokens remaining,
+        // has burned 1 * 1e18 utility tokens, and uses a specific nonce, which is used, so the authorization state should be true
+        // Participant has burned 0 utility token
+        checkExchangeResult(
+            participant2, 55808054666666666, 10_000 * 1e18 - 1 * 1e18, 1 * 1e18, address(participant), 0, nonce, true
+        );
+    }
+
+    function testExchangeLargeAmountSuccessCase() public {
+        bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 9800 * 1e18, nonce, expirationTime, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        // when you exchange 1_100 utility token, you will get 11 voting power
+        vm.expectEmit();
+        emit VotingPowerExchange.VotingPowerReceived(participant2, 9800 * 1e18, 35 * 1e18);
+        votingPowerExchange.exchange(participant2, 9800 * 1e18, nonce, expirationTime, signature);
+
+        // Check the result of the humongous token exchange:
+        // Participant2 receives 35 governance tokens, has 200 utility tokens remaining,
+        // has burned 9800 utility tokens, and uses a specific nonce, which is used, so the authorization state should be true
+        // Participant has burned 0 utility token
+        checkExchangeResult(
+            participant2, 35 * 1e18, 10_000 * 1e18 - 9_800 * 1e18, 9_800 * 1e18, address(participant), 0, nonce, true
+        );
+    }
+
+    function testExchangeHumongousAmountSuccessCase() public {
+        vm.prank(minter);
+        // user has already got 10_000 utility token
+        utilityToken.mint(participant2, 65_300 * 1e18);
+        bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 75_240 * 1e18, nonce, expirationTime, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        // when you exchange 1_100 utility token, you will get 11 voting power
+        vm.expectEmit();
+        emit VotingPowerExchange.VotingPowerReceived(participant2, 75_240 * 1e18, 99 * 1e18);
+        votingPowerExchange.exchange(participant2, 75_240 * 1e18, nonce, expirationTime, signature);
+        vm.stopPrank();
+
+        // Check the result of the humongous token exchange:
+        // Participant2 receives 99 governance tokens, has 60 utility tokens remaining,
+        // has burned 75240 utility tokens, and uses a specific nonce, which is used, so the authorization state should be true
+        // Participant has burned 0 utility token
+        checkExchangeResult(participant2, 99 * 1e18, 60 * 1e18, 75_240 * 1e18, participant, 0, nonce, true);
+    }
+
+    ////// test failure cases //////
+    function testExchangeFailsWhenSenderIsZeroAddress() public {
+        bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, expirationTime, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        vm.expectRevert(VotingPowerExchange.VotingPowerExchange__AddressIsZero.selector);
+        votingPowerExchange.exchange(address(0), 1_100 * 1e18, nonce, expirationTime, signature);
+        vm.stopPrank();
     }
 
     function testExchangeFailCaseWhenSginatureExpired() public {
         bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
         (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
-            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, 3600, address(votingPowerExchange)
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, expirationTime, address(votingPowerExchange)
         );
         vm.warp(block.timestamp + 3601);
-        address signer = vm.addr(dc.DEFAULT_ANVIL_KEY2());
         vm.startPrank(exchanger);
         vm.expectRevert(VotingPowerExchange.VotingPowerExchange__SignatureExpired.selector);
-        votingPowerExchange.exchange(signer, 1_100 * 1e18, nonce, 3600, signature);
+        votingPowerExchange.exchange(participant2, 1_100 * 1e18, nonce, expirationTime, signature);
         vm.stopPrank();
     }
 
@@ -445,6 +532,14 @@ contract VotingPwoerExchangeTest is Test {
         vm.stopPrank();
     }
 
+    /**
+     * @dev Creates a digest for EIP-712
+     * @param sender The address of the sender
+     * @param amount The amount of utility token to be exchanged
+     * @param nonce The nonce used in the exchange transaction
+     * @param expiration The expiration time of the signature
+     * @return The digest of the EIP-712
+     */
     function createDigest(address sender, uint256 amount, bytes32 nonce, uint256 expiration)
         internal
         view
@@ -461,5 +556,32 @@ contract VotingPwoerExchangeTest is Test {
             )
         );
         return MessageHashUtils.toTypedDataHash(domainSeparator, structHash);
+    }
+
+    /**
+     * @dev Checks the result of a token exchange operation
+     * @param user10 The address of the user who performed the exchange
+     * @param expectedGovTokenBalance The expected balance of governance tokens after the exchange
+     * @param expectedUtilityTokenBalance The expected balance of utility tokens after the exchange
+     * @param expectedBurnedAmount The expected amount of utility tokens burned during the exchange
+     * @param user20 The address of the user who did not perform the exchange
+     * @param expectedBurnedAmount2 The expected amount of utility tokens burned during the exchange
+     * @param nonce The nonce used in the exchange transaction
+     */
+    function checkExchangeResult(
+        address user10,
+        uint256 expectedGovTokenBalance,
+        uint256 expectedUtilityTokenBalance,
+        uint256 expectedBurnedAmount,
+        address user20,
+        uint256 expectedBurnedAmount2,
+        bytes32 nonce,
+        bool expectedAuthorizationState
+    ) internal view {
+        assertEq(govToken.balanceOf(user10), expectedGovTokenBalance);
+        assertEq(utilityToken.balanceOf(user10), expectedUtilityTokenBalance);
+        assertEq(govToken.burnedAmountOfUtilToken(user10), expectedBurnedAmount);
+        assertEq(govToken.burnedAmountOfUtilToken(address(user20)), expectedBurnedAmount2);
+        assertTrue(votingPowerExchange.authorizationState(user10, nonce) == expectedAuthorizationState);
     }
 }
