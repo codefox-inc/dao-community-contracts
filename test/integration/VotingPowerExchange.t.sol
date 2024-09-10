@@ -410,6 +410,7 @@ contract VotingPwoerExchangeTest is Test {
         (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
             dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, expirationTime, address(votingPowerExchange)
         );
+        // exchanger is exchanging the token on behalf of participant2
         vm.startPrank(exchanger);
         // when you exchange 1_100 utility token, you will get 11 voting power
         vm.expectEmit();
@@ -466,7 +467,7 @@ contract VotingPwoerExchangeTest is Test {
         );
     }
 
-    function testExchangeHumongousAmountSuccessCase() public {
+    function testExchangeVotingPowerCapSuccessCase() public {
         vm.prank(minter);
         // user has already got 10_000 utility token
         utilityToken.mint(participant2, 65_300 * 1e18);
@@ -487,6 +488,38 @@ contract VotingPwoerExchangeTest is Test {
         // has burned 75240 utility tokens, and uses a specific nonce, which is used, so the authorization state should be true
         // Participant has burned 0 utility token
         checkExchangeResult(participant2, 99 * 1e18, 60 * 1e18, 75_240 * 1e18, participant, 0, nonce, true);
+    }
+
+    function testExchangeTwiceToGetToVotingPowerCapSuccessCase() public {
+        vm.prank(minter);
+        // user has already got 10_000 utility token
+        utilityToken.mint(participant2, 75_240 * 1e18);
+        bytes32 nonce = bytes32(0);
+        uint256 expirationTime = 3600;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 2_200 * 1e18, nonce, expirationTime, address(votingPowerExchange)
+        );
+        // exchanger is exchanging the token on behalf of participant2
+        vm.startPrank(exchanger);
+        // when you exchange 2200 utility token, you will get 16 voting power
+        vm.expectEmit();
+        emit VotingPowerExchange.VotingPowerReceived(participant2, 2_200 * 1e18, 16 * 1e18);
+        votingPowerExchange.exchange(participant2, 2_200 * 1e18, nonce, expirationTime, signature);
+        vm.stopPrank();
+        // check result for once
+        checkExchangeResult(participant2, 16 * 1e18, 85_240 * 1e18 - 2_200 * 1e18, 2_200 * 1e18, participant, 0, nonce, true);
+        
+        nonce = keccak256("1");
+        // when you exchange 73_040 utility token, you will get 98 voting power
+        (bytes memory signature2,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 73_040 * 1e18, nonce, expirationTime, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        vm.expectEmit();
+        emit VotingPowerExchange.VotingPowerReceived(participant2, 73_040 * 1e18, 83 * 1e18);
+        votingPowerExchange.exchange(participant2, 73_040 * 1e18, nonce, expirationTime, signature2);
+        vm.stopPrank();
+        checkExchangeResult(participant2, 99 * 1e18, 85_240 * 1e18 - 75_240 * 1e18, 75_240 * 1e18, participant, 0, nonce, true);
     }
 
     ////// test failure cases //////

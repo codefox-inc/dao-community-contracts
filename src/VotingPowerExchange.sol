@@ -211,7 +211,6 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         return result;
     }
 
-    // TODO: test this function
     /**
      * @notice Calculate the incremented burning amount based on the incremented voting power
      * @dev This function calculates the incremented burning amount based on the incremented voting power
