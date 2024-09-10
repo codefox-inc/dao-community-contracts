@@ -209,7 +209,7 @@ contract VotingPwoerExchangeTest is Test {
         assertEq(vpe.getVotingPowerCap(), 99 * 1e18);
     }
 
-    function teestBasicVotingPowerExchangeInfo() public view {
+    function testBasicVotingPowerExchangeInfo() public view {
         (address _utilityToken, address _govToken) = votingPowerExchange.getTokenAddresses();
         assertEq(_govToken, address(govToken));
         assertEq(_utilityToken, address(utilityToken));
