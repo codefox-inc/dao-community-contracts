@@ -109,6 +109,129 @@ contract VotingPwoerExchangeTest is Test {
         votingPowerExchange.setVotingPowerCap(100e18);
     }
 
+    ///////////////////////////////////////////////////////////
+    /// Test the `calculateIncrementedVotingPower` function ///
+    ///////////////////////////////////////////////////////////
+    function testCalculateIncrementedVotingPower(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 92675e18);
+        uint256 currentBurnedAmount = uint256(0);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0);
+        assertTrue(incrementedVotingPower <= 110e18);
+    }
+
+    function testCalculateIncrementedVotingPower_0_to_10(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 925e18);
+        uint256 currentBurnedAmount = uint256(0);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0);
+        assertTrue(incrementedVotingPower <= 10e18);
+    }
+
+    function testCalculateIncrementedVotingPower_10_to_20(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 2425e18);
+        uint256 currentBurnedAmount = uint256(925e18);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0e18);
+        assertTrue(incrementedVotingPower <= 10e18);
+    }
+
+    function testCalculateIncrementedVotingPower_20_to_30(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 3925e18);
+        uint256 currentBurnedAmount = uint256(3350e18);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0e18);
+        assertTrue(incrementedVotingPower <= 10e18);
+    }
+
+    function testCalculateIncrementedVotingPower_30_to_40(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 5425e18);
+        uint256 currentBurnedAmount = uint256(7275e18);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0e18);
+        assertTrue(incrementedVotingPower <= 10e18);
+    }
+
+    function testCalculateIncrementedVotingPower_40_to_50(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 6925e18);
+        uint256 currentBurnedAmount = uint256(12700e18);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0e18);
+        assertTrue(incrementedVotingPower <= 10e18);
+    }
+
+    function testCalculateIncrementedVotingPower_50_to_60(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 8425e18);
+        uint256 currentBurnedAmount = uint256(20815e18);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0e18);
+        assertTrue(incrementedVotingPower <= 10e18);
+    }
+
+    function testCalculateIncrementedVotingPower_60_to_70(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 9925e18);
+        uint256 currentBurnedAmount = uint256(31840e18);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0e18);
+        assertTrue(incrementedVotingPower <= 10e18);
+    }
+
+    function testCalculateIncrementedVotingPower_70_to_80(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 11425e18);
+        uint256 currentBurnedAmount = uint256(45765e18);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0e18);
+        assertTrue(incrementedVotingPower <= 10e18);
+    }
+
+    function testCalculateIncrementedVotingPower_80_to_90(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 12925e18);
+        uint256 currentBurnedAmount = uint256(62325e18);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0e18);
+        assertTrue(incrementedVotingPower <= 10e18);
+    }
+
+    function testCalculateIncrementedVotingPower_90_to_100(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 14425e18);
+        uint256 currentBurnedAmount = uint256(92675e18);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0e18);
+        assertTrue(incrementedVotingPower <= 10e18);
+    }
+
+    function testCalculateIncrementedVotingPower_10_to_110(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 925e18, 92675e18);
+        uint256 currentBurnedAmount = uint256(0);
+
+        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 10e18);
+        assertTrue(incrementedVotingPower <= 110e18);
+    }
+
     ///////////////////////////////////////////////////////////////
     /// Test the `calculateVotingPowerFromBurnedAmount` function //
     ///////////////////////////////////////////////////////////////
@@ -263,7 +386,7 @@ contract VotingPwoerExchangeTest is Test {
         // limit the currentBurnedAmount to a reasonable range
         uint256 currentVotingPower = uint256(0);
         // limit the incrementedAmount to a reasonable range
-        uint256 incrementedVotingPower = bound(incrementedVotingPower, 0, 110e18);
+        incrementedVotingPower = bound(incrementedVotingPower, 0, 110e18);
 
         uint256 incrementedBurningAmount =
             votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
@@ -276,7 +399,7 @@ contract VotingPwoerExchangeTest is Test {
         // limit the currentBurnedAmount to a reasonable range
         uint256 currentVotingPower = 10e18;
         // limit the incrementedAmount to a reasonable range
-        uint256 incrementedVotingPower = bound(incrementedVotingPower, 0, 100e18);
+        incrementedVotingPower = bound(incrementedVotingPower, 0, 100e18);
 
         uint256 incrementedBurningAmount =
             votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
@@ -289,7 +412,7 @@ contract VotingPwoerExchangeTest is Test {
         // limit the currentBurnedAmount to a reasonable range
         uint256 currentVotingPower = 20e18;
         // limit the incrementedAmount to a reasonable range
-        uint256 incrementedVotingPower = bound(incrementedVotingPower, 0, 90e18);
+        incrementedVotingPower = bound(incrementedVotingPower, 0, 90e18);
 
         uint256 incrementedBurningAmount =
             votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
@@ -302,7 +425,7 @@ contract VotingPwoerExchangeTest is Test {
         // limit the currentBurnedAmount to a reasonable range
         uint256 currentVotingPower = 30e18;
         // limit the incrementedAmount to a reasonable range
-        uint256 incrementedVotingPower = bound(incrementedVotingPower, 0, 80e18);
+        incrementedVotingPower = bound(incrementedVotingPower, 0, 80e18);
 
         uint256 incrementedBurningAmount =
             votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
