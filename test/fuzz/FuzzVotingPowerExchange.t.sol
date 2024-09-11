@@ -259,7 +259,7 @@ contract VotingPwoerExchangeTest is Test {
     /////////////////////////////////////////////////////////////////
     /// Test the `calculateBurningAmountFromVotingPower` function ///
     /////////////////////////////////////////////////////////////////
-    function testFuzzCalculateBurningAmountFromVotingPower_0_110(uint256 votingPowerAmount) public view{
+    function testFuzzCalculateBurningAmountFromVotingPower_0_110(uint256 votingPowerAmount) public view {
         // limit the votingPowerAmount to a reasonable range
         votingPowerAmount = bound(votingPowerAmount, 0, 110e18);
 
@@ -271,7 +271,7 @@ contract VotingPwoerExchangeTest is Test {
         assertTrue(burningAmount <= 92675e18);
     }
 
-    function testFuzzCalculateBurningAmountFromVotingPower_100_110(uint256 votingPowerAmount) public view{
+    function testFuzzCalculateBurningAmountFromVotingPower_100_110(uint256 votingPowerAmount) public view {
         // limit the votingPowerAmount to a reasonable range
         votingPowerAmount = bound(votingPowerAmount, 100e18, 110e18);
 
@@ -289,7 +289,7 @@ contract VotingPwoerExchangeTest is Test {
 
         uint256 burningAmount = votingPowerExchange.calculateBurningAmountFromVotingPower(votingPowerAmount);
         uint256 expectedBurningAmount = calculateExpectedBurningAmount(votingPowerAmount);
-    
+
         assertEq(burningAmount, expectedBurningAmount);
         assertTrue(burningAmount >= 62325e18);
         assertTrue(burningAmount <= 76750e18);
@@ -301,7 +301,7 @@ contract VotingPwoerExchangeTest is Test {
 
         uint256 burningAmount = votingPowerExchange.calculateBurningAmountFromVotingPower(votingPowerAmount);
         uint256 expectedBurningAmount = calculateExpectedBurningAmount(votingPowerAmount);
-    
+
         assertEq(burningAmount, expectedBurningAmount);
         assertTrue(burningAmount >= 49400e18);
         assertTrue(burningAmount <= 62325e18);
@@ -337,7 +337,7 @@ contract VotingPwoerExchangeTest is Test {
 
         uint256 burningAmount = votingPowerExchange.calculateBurningAmountFromVotingPower(votingPowerAmount);
         uint256 expectedBurningAmount = calculateExpectedBurningAmount(votingPowerAmount);
-    
+
         assertEq(burningAmount, expectedBurningAmount);
         assertTrue(burningAmount >= 19625e18);
         assertTrue(burningAmount <= 28050e18);
@@ -349,7 +349,7 @@ contract VotingPwoerExchangeTest is Test {
 
         uint256 burningAmount = votingPowerExchange.calculateBurningAmountFromVotingPower(votingPowerAmount);
         uint256 expectedBurningAmount = calculateExpectedBurningAmount(votingPowerAmount);
-    
+
         assertEq(burningAmount, expectedBurningAmount);
         assertTrue(burningAmount >= 12700e18);
         assertTrue(burningAmount <= 19625e18);
