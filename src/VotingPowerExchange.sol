@@ -100,7 +100,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         onlyRole(EXCHANGER_ROLE)
     {
         if (sender == address(0)) revert VotingPowerExchange__AddressIsZero();
-        if (amount < 1e15) revert VotingPowerExchange__AmountIsTooSmall(); // not allow toexchange less than 0.001 utility token
+        if (amount < 1e18) revert VotingPowerExchange__AmountIsTooSmall(); // not allow to exchange less than 1 utility token
         if (authorizationState(sender, nonce)) revert VotingPowerExchange__InvalidNonce();
         if (block.timestamp > expiration) revert VotingPowerExchange__SignatureExpired();
         // check the current gove token balance of the sender
