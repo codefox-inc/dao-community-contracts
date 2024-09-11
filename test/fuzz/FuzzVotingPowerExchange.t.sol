@@ -77,7 +77,99 @@ contract VotingPwoerExchangeTest is Test {
         vm.label(user2, "user2");
     }
 
-    ///////////////////////////
+    //////////////////////////////
+    ///// exchange functions /////
+    //////////////////////////////
+    function testExchangeWithAnySenderWhoIsNotTheSignerWillRevert(address anySender) public {
+        vm.assume(anySender != participant2);
+        vm.assume(anySender != address(0));
+        bytes32 nonce = bytes32(0);
+        uint256 expiration = block.timestamp + 1000000000;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, expiration, address(votingPowerExchange)
+        );
+
+        bytes32 digest = helper.createDigest(anySender, 1_100 * 1e18, nonce, expiration, address(votingPowerExchange));
+        vm.startPrank(exchanger);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                VotingPowerExchange.VotingPowerExchange__InvalidSignature.selector, digest, signature
+            )
+        );
+        votingPowerExchange.exchange(anySender, 1_100 * 1e18, nonce, expiration, signature);
+        vm.stopPrank();
+    }
+
+    function testExchangeWithAnyAmountLessThan1e18WillRevert(uint256 amount) public {
+        vm.assume(amount < 1e18);
+        bytes32 nonce = bytes32(0);
+        uint256 expiration = block.timestamp + 1000000000;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), amount, nonce, expiration, address(votingPowerExchange)
+        );
+
+        vm.startPrank(exchanger);
+        vm.expectRevert(VotingPowerExchange.VotingPowerExchange__AmountIsTooSmall.selector);
+        votingPowerExchange.exchange(participant2, amount, nonce, expiration, signature);
+        vm.stopPrank();
+    }
+
+    function testExchangeWithAnyAmountWhichIsInRangeWillSucceed(uint256 amount) public {
+        // mint 75240 utility token to the participant2
+        vm.startPrank(minter);
+        utilityToken.mint(participant2, 75240 * 1e18);
+        vm.stopPrank();
+        // start testing
+        amount = bound(amount, 1e18, 75240 * 1e18);
+        bytes32 nonce = bytes32(0);
+        uint256 expiration = block.timestamp + 1000000000;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), amount, nonce, expiration, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        votingPowerExchange.exchange(participant2, amount, nonce, expiration, signature);
+        vm.stopPrank();
+        // check the balance of the participant2
+        assertEq(utilityToken.balanceOf(participant2), 85240 * 1e18 - amount); // he got 10000 token in advance
+        uint256 exchangedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(amount, 0);
+        // check the balance of the govToken
+        assertEq(govToken.balanceOf(participant2), exchangedVotingPower);
+    }
+
+    function testExchangeWithAnyRoleWhoIsNotExchangerWillRevert(address anyRole) public {
+        vm.assume(anyRole != exchanger);
+        bytes32 nonce = bytes32(0);
+        uint256 expiration = block.timestamp + 1000000000;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, expiration, address(votingPowerExchange)
+        );
+
+        vm.startPrank(anyRole);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, anyRole, votingPowerExchange.EXCHANGER_ROLE()
+            )
+        );
+        votingPowerExchange.exchange(participant2, 1_100 * 1e18, nonce, expiration, signature);
+        vm.stopPrank();
+    }
+
+    function testExchangeWithAnyNonceWhichIsUsedWillRevert(bytes32 badNonce) public {
+        uint256 expiration = block.timestamp + 1000000000;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, badNonce, expiration, address(votingPowerExchange)
+        );
+
+        vm.startPrank(exchanger);
+        votingPowerExchange.exchange(participant2, 1_100 * 1e18, badNonce, expiration, signature);
+        (bytes memory signature2,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, badNonce, expiration, address(votingPowerExchange)
+        );
+        vm.expectRevert(VotingPowerExchange.VotingPowerExchange__InvalidNonce.selector);
+        votingPowerExchange.exchange(participant2, 1_100 * 1e18, badNonce, expiration, signature2);
+        vm.stopPrank();
+    }
+
     ///// Other functions /////
     ///////////////////////////
     /// The `setVotingPowerCap` function
@@ -109,6 +201,7 @@ contract VotingPwoerExchangeTest is Test {
         votingPowerExchange.setVotingPowerCap(100e18);
     }
 
+    // testing the calculation of voting power token <-> burned token
     ///////////////////////////////////////////////////////////
     /// Test the `calculateIncrementedVotingPower` function ///
     ///////////////////////////////////////////////////////////
@@ -226,6 +319,17 @@ contract VotingPwoerExchangeTest is Test {
         // limit the incrementedAmount to a reasonable range
         incrementedAmount = bound(incrementedAmount, 0, 14425e18);
         uint256 currentBurnedAmount = uint256(92675e18);
+
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        assertTrue(incrementedVotingPower >= 0e18);
+        assertTrue(incrementedVotingPower <= 10e18);
+    }
+
+    function testCalculateIncrementedVotingPower_100_to_110(uint256 incrementedAmount) public view {
+        // limit the incrementedAmount to a reasonable range
+        incrementedAmount = bound(incrementedAmount, 0, 15925e18);
+        uint256 currentBurnedAmount = uint256(76750e18);
 
         uint256 incrementedVotingPower =
             votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);

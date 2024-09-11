@@ -39,4 +39,30 @@ contract VotingPowerExchangeTestHelper is Test {
 
         return (abi.encodePacked(r, s, v), hash);
     }
+
+    /**
+     * @dev Creates a digest for EIP-712
+     * @param sender The address of the sender
+     * @param amount The amount of utility token to be exchanged
+     * @param nonce The nonce used in the exchange transaction
+     * @param expiration The expiration time of the signature
+     * @return The digest of the EIP-712
+     */
+    function createDigest(address sender, uint256 amount, bytes32 nonce, uint256 expiration, address exchangeAddr)
+        public
+        view
+        returns (bytes32)
+    {
+        bytes32 structHash = keccak256(abi.encode(_EXCHANGE_TYPEHASH, sender, amount, nonce, expiration));
+        bytes32 domainSeparator = keccak256(
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes("VotingPowerExchange")),
+                keccak256(bytes("1")),
+                block.chainid,
+                exchangeAddr
+            )
+        );
+        return MessageHashUtils.toTypedDataHash(domainSeparator, structHash);
+    }
 }

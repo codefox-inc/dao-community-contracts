@@ -139,15 +139,19 @@ other functions
 
 ## voting power calculation table
 
-These are the values we used in the fuzz tests for voint power <->
+These are the values we used in the fuzz tests for voting power <-> burned token calculation.
+
+- Function:
 
 ```
 x = (2 \* sqrt(306.25 + 30y) - 5) / 30 - 1
 y = (15*x^2+35*x)/2
 
-x = mintedToken
-y = burnedToken
+x: mintedToken
+y: burnedToken
 ```
+
+- Table:
 
 | Minted Token (lvl) | Level | Burned Token |
 | ------------------ | ----- | ------------ |
