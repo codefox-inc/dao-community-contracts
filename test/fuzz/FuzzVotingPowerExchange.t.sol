@@ -97,7 +97,7 @@ contract VotingPwoerExchangeTest is Test {
         votingPowerExchange.setVotingPowerCap(cap);
     }
 
-    function testSetVotingPowerCap_revertWhenNonManager(address nonManager) public {
+    function testSetVotingPowerCap_revertWhenNonManagerCalled(address nonManager) public {
         vm.assume(nonManager != manager);
         vm.prank(nonManager);
         vm.expectRevert(
@@ -254,6 +254,152 @@ contract VotingPwoerExchangeTest is Test {
         assertEq(votingPower, expectedVotingPower);
         assertTrue(votingPower >= 0);
         assertTrue(votingPower <= 10e18);
+    }
+
+    //////////////////////////////////////////////////////////////
+    /// Test the `calculateIncrementedBurningAmount` function ////
+    //////////////////////////////////////////////////////////////
+    function testFuzzCalculateIncrementedBurningAmount_0_to_110(uint256 incrementedVotingPower) public view {
+        // limit the currentBurnedAmount to a reasonable range
+        uint256 currentVotingPower = uint256(0);
+        // limit the incrementedAmount to a reasonable range
+        uint256 incrementedVotingPower = bound(incrementedVotingPower, 0, 110e18);
+
+        uint256 incrementedBurningAmount =
+            votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
+
+        assertTrue(incrementedBurningAmount >= 0);
+        assertTrue(incrementedBurningAmount <= 92675e18);
+    }
+
+    function testFuzzCalculateIncrementedBurningAmount_10_to_110(uint256 incrementedVotingPower) public view {
+        // limit the currentBurnedAmount to a reasonable range
+        uint256 currentVotingPower = 10e18;
+        // limit the incrementedAmount to a reasonable range
+        uint256 incrementedVotingPower = bound(incrementedVotingPower, 0, 100e18);
+
+        uint256 incrementedBurningAmount =
+            votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
+
+        assertTrue(incrementedBurningAmount >= 0);
+        assertTrue(incrementedBurningAmount <= 91910e18);
+    }
+
+    function testFuzzCalculateIncrementedBurningAmount_20_to_110(uint256 incrementedVotingPower) public view {
+        // limit the currentBurnedAmount to a reasonable range
+        uint256 currentVotingPower = 20e18;
+        // limit the incrementedAmount to a reasonable range
+        uint256 incrementedVotingPower = bound(incrementedVotingPower, 0, 90e18);
+
+        uint256 incrementedBurningAmount =
+            votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
+
+        assertTrue(incrementedBurningAmount >= 0);
+        assertTrue(incrementedBurningAmount <= 89325e18);
+    }
+
+    function testFuzzCalculateIncrementedBurningAmount_30_to_110(uint256 incrementedVotingPower) public view {
+        // limit the currentBurnedAmount to a reasonable range
+        uint256 currentVotingPower = 30e18;
+        // limit the incrementedAmount to a reasonable range
+        uint256 incrementedVotingPower = bound(incrementedVotingPower, 0, 80e18);
+
+        uint256 incrementedBurningAmount =
+            votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
+
+        assertTrue(incrementedBurningAmount >= 0);
+        assertTrue(incrementedBurningAmount <= 85400e18);
+    }
+
+    function testFuzzCalculateIncrementedBurningAmount_40_to_110(uint256 incrementedVotingPower) public view {
+        // limit the currentBurnedAmount to a reasonable range
+        uint256 currentVotingPower = 40e18;
+        // limit the incrementedAmount to a reasonable range
+        incrementedVotingPower = bound(incrementedVotingPower, 0, 70e18);
+
+        uint256 incrementedBurningAmount =
+            votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
+
+        assertTrue(incrementedBurningAmount >= 0);
+        assertTrue(incrementedBurningAmount <= 85400e18);
+    }
+
+    function testFuzzCalculateIncrementedBurningAmount_50_to_110(uint256 incrementedVotingPower) public view {
+        // limit the currentBurnedAmount to a reasonable range
+        uint256 currentVotingPower = 50e18;
+        // limit the incrementedAmount to a reasonable range
+        incrementedVotingPower = bound(incrementedVotingPower, 0, 60e18);
+
+        uint256 incrementedBurningAmount =
+            votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
+
+        assertTrue(incrementedBurningAmount >= 0);
+        assertTrue(incrementedBurningAmount <= 73050e18);
+    }
+
+    function testFuzzCalculateIncrementedBurningAmount_60_to_110(uint256 incrementedVotingPower) public view {
+        // limit the currentBurnedAmount to a reasonable range
+        uint256 currentVotingPower = 60e18;
+        // limit the incrementedAmount to a reasonable range
+        incrementedVotingPower = bound(incrementedVotingPower, 0, 50e18);
+
+        uint256 incrementedBurningAmount =
+            votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
+
+        assertTrue(incrementedBurningAmount >= 0);
+        assertTrue(incrementedBurningAmount <= 64625e18);
+    }
+
+    function testFuzzCalculateIncrementedBurningAmount_70_to_110(uint256 incrementedVotingPower) public view {
+        // limit the currentBurnedAmount to a reasonable range
+        uint256 currentVotingPower = 70e18;
+        // limit the incrementedAmount to a reasonable range
+        incrementedVotingPower = bound(incrementedVotingPower, 0, 40e18);
+
+        uint256 incrementedBurningAmount =
+            votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
+
+        assertTrue(incrementedBurningAmount >= 0);
+        assertTrue(incrementedBurningAmount <= 54700e18);
+    }
+
+    function testFuzzCalculateIncrementedBurningAmount_80_to_110(uint256 incrementedVotingPower) public view {
+        // limit the currentBurnedAmount to a reasonable range
+        uint256 currentVotingPower = 80e18;
+        // limit the incrementedAmount to a reasonable range
+        incrementedVotingPower = bound(incrementedVotingPower, 0, 30e18);
+
+        uint256 incrementedBurningAmount =
+            votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
+
+        assertTrue(incrementedBurningAmount >= 0);
+        assertTrue(incrementedBurningAmount <= 43275e18);
+    }
+
+    function testFuzzCalculateIncrementedBurningAmount_90_to_110(uint256 incrementedVotingPower) public view {
+        // limit the currentBurnedAmount to a reasonable range
+        uint256 currentVotingPower = 90e18;
+        // limit the incrementedAmount to a reasonable range
+        incrementedVotingPower = bound(incrementedVotingPower, 0, 20e18);
+
+        uint256 incrementedBurningAmount =
+            votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
+
+        assertTrue(incrementedBurningAmount >= 0);
+        assertTrue(incrementedBurningAmount <= 30350e18);
+    }
+
+    function testFuzzCalculateIncrementedBurningAmount_100_to_110(uint256 incrementedVotingPower) public view {
+        // limit the currentBurnedAmount to a reasonable range
+        uint256 currentVotingPower = 100e18;
+        // limit the incrementedAmount to a reasonable range
+        incrementedVotingPower = bound(incrementedVotingPower, 0, 10e18);
+
+        uint256 incrementedBurningAmount =
+            votingPowerExchange.calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
+
+        assertTrue(incrementedBurningAmount >= 0);
+        assertTrue(incrementedBurningAmount <= 15925e18);
     }
 
     /////////////////////////////////////////////////////////////////
