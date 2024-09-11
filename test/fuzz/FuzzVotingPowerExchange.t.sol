@@ -117,7 +117,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 0, 92675e18);
         uint256 currentBurnedAmount = uint256(0);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 0);
         assertTrue(incrementedVotingPower <= 110e18);
     }
@@ -127,7 +128,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 0, 925e18);
         uint256 currentBurnedAmount = uint256(0);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 0);
         assertTrue(incrementedVotingPower <= 10e18);
     }
@@ -137,7 +139,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 0, 2425e18);
         uint256 currentBurnedAmount = uint256(925e18);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 0e18);
         assertTrue(incrementedVotingPower <= 10e18);
     }
@@ -147,7 +150,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 0, 3925e18);
         uint256 currentBurnedAmount = uint256(3350e18);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 0e18);
         assertTrue(incrementedVotingPower <= 10e18);
     }
@@ -157,7 +161,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 0, 5425e18);
         uint256 currentBurnedAmount = uint256(7275e18);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 0e18);
         assertTrue(incrementedVotingPower <= 10e18);
     }
@@ -167,7 +172,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 0, 6925e18);
         uint256 currentBurnedAmount = uint256(12700e18);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 0e18);
         assertTrue(incrementedVotingPower <= 10e18);
     }
@@ -177,7 +183,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 0, 8425e18);
         uint256 currentBurnedAmount = uint256(20815e18);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 0e18);
         assertTrue(incrementedVotingPower <= 10e18);
     }
@@ -187,7 +194,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 0, 9925e18);
         uint256 currentBurnedAmount = uint256(31840e18);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 0e18);
         assertTrue(incrementedVotingPower <= 10e18);
     }
@@ -197,7 +205,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 0, 11425e18);
         uint256 currentBurnedAmount = uint256(45765e18);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 0e18);
         assertTrue(incrementedVotingPower <= 10e18);
     }
@@ -207,7 +216,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 0, 12925e18);
         uint256 currentBurnedAmount = uint256(62325e18);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 0e18);
         assertTrue(incrementedVotingPower <= 10e18);
     }
@@ -217,7 +227,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 0, 14425e18);
         uint256 currentBurnedAmount = uint256(92675e18);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 0e18);
         assertTrue(incrementedVotingPower <= 10e18);
     }
@@ -227,7 +238,8 @@ contract VotingPwoerExchangeTest is Test {
         incrementedAmount = bound(incrementedAmount, 925e18, 92675e18);
         uint256 currentBurnedAmount = uint256(0);
 
-        uint256 incrementedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
+        uint256 incrementedVotingPower =
+            votingPowerExchange.calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount);
         assertTrue(incrementedVotingPower >= 10e18);
         assertTrue(incrementedVotingPower <= 110e18);
     }
