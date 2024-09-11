@@ -3,10 +3,8 @@ src = "src"
 out = "out"
 libs = ["lib"]
 
-# fuzz test times
-fuzz_runs = 2048
-# fuzz test max time
-fuzz_max_time = 60
+[fuzz]
+runs = 4096
 
 ffi = true
 ast = true

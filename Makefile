@@ -15,7 +15,7 @@ update:; forge update
 
 build:; forge build
 
-test :; forge test -vv
+test :; forge test
 
 snapshot :; forge snapshot
 

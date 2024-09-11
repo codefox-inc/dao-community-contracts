@@ -75,6 +75,9 @@ contract VotingPwoerExchangeTest is Test {
         vm.label(user2, "user2");
     }
 
+    ////////////////////////////
+    ///// Some basic tests /////
+    ////////////////////////////
     function testReturnedSetupValues() public view {
         assertEq(address(utilityToken), address(result.utilityToken), "utilityToken address is not the same");
         assertEq(address(govToken), address(result.govToken), "govToken address is not the same");
@@ -97,7 +100,6 @@ contract VotingPwoerExchangeTest is Test {
         assertTrue(exchanger != address(0), "exchanger address is zero");
     }
 
-    ///// basic tests /////
     function testTokensAccessRoles() public view {
         // test gov token
         assertEq(govToken.hasRole(govToken.DEFAULT_ADMIN_ROLE(), admin), true);
@@ -111,7 +113,7 @@ contract VotingPwoerExchangeTest is Test {
         assertEq(utilityToken.hasRole(utilityToken.BURNER_ROLE(), burner), true);
     }
 
-    function testVotingPowerExchangesRole() public view {
+    function testVotingPowerExchangesRoles() public view {
         // test voting power exchange
         assertEq(votingPowerExchange.hasRole(votingPowerExchange.DEFAULT_ADMIN_ROLE(), admin), true);
         assertEq(votingPowerExchange.hasRole(votingPowerExchange.MANAGER_ROLE(), manager), true);
@@ -146,7 +148,7 @@ contract VotingPwoerExchangeTest is Test {
         assertEq(govToken.balanceOf(address(2)), 0);
     }
 
-    function testUtilityTokenCanBeTrasnferred() public {
+    function testUtilityTokenCanBeTransferred() public {
         vm.startPrank(minter);
         utilityToken.mint(address(1), 10);
         assertEq(utilityToken.balanceOf(address(1)), 10);
