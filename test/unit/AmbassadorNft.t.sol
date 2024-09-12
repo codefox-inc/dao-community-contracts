@@ -240,7 +240,11 @@ contract AmbassadorTest is Test {
         vm.stopPrank();
         // try to call burnBatch
         vm.startPrank(blackUser);
-    vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, blackUser, ambassadorNft.BURNER_ROLE()));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, blackUser, ambassadorNft.BURNER_ROLE()
+            )
+        );
         ambassadorNft.burnBatch(testAccount, ids, burningValues);
         vm.stopPrank();
     }

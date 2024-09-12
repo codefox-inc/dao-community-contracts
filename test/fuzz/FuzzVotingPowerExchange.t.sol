@@ -77,9 +77,9 @@ contract VotingPwoerExchangeTest is Test {
         vm.label(user2, "user2");
     }
 
-    //////////////////////////////
-    ///// exchange functions /////
-    //////////////////////////////
+    /////////////////////////////
+    ///// exchange function /////
+    /////////////////////////////
     function testExchangeWithAnySenderWhoIsNotTheSignerWillRevert(address anySender) public {
         vm.assume(anySender != participant2);
         vm.assume(anySender != address(0));
@@ -848,6 +848,9 @@ contract VotingPwoerExchangeTest is Test {
         assertTrue(burningAmount <= 925e18);
     }
 
+    ////////////////////////////////////////
+    /// Preparation internal functions /////
+    ////////////////////////////////////////
     function calculateExpectedBurningAmount(uint256 votingPowerAmount) internal pure returns (uint256) {
         uint256 term = 15 * (votingPowerAmount * votingPowerAmount) / 1e18 + 35 * votingPowerAmount;
         return term / 2;

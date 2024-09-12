@@ -20,5 +20,10 @@
   },
   "peacock.color": "#7db3df",
   "solidity.packageDefaultDependenciesDirectory": "lib",
-  "solidity.packageDefaultDependenciesContractsDirectory": "src"
+  "solidity.packageDefaultDependenciesContractsDirectory": "src",
+  "editor.formatOnSave": true,
+  "[solidity]": {
+    "editor.defaultFormatter": "JuanBlanco.solidity"
+  },
+  "solidity.formatter": "forge"
 }

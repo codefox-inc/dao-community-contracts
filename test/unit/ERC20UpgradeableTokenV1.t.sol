@@ -67,6 +67,21 @@ contract ERC20UpgradeableTokenV1Test is Test {
     ///////////// ERC20 SPECIAL TEST CASES /////////////
     ////////////////////////////////////////////////////
     ///
+    /// test default admin cannot be zero
+    ///
+    function testDefaultAdminCannotBeZero() public {
+        address implementation2 = address(new ERC20UpgradeableTokenV1());
+        vm.expectRevert(ERC20UpgradeableTokenV1.DefaultAdminCannotBeZero.selector);
+        address proxy2 = UnsafeUpgrades.deployUUPSProxy(
+            implementation2,
+            abi.encodeCall(
+                ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", address(0), pauser, minter, burner, admin)
+            )
+        );
+        console.log("Proxy2 deployed at:", proxy2);
+    }
+
+    ///
     /// test burning the tokens
     // ///
     function testSucceedingToBurnTokens() public {
@@ -111,6 +126,9 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(token.totalSupply(), 1000 ether);
     }
 
+    ///
+    /// test roles are set correctly
+    ///
     function testRolesAreSetCorrectly() public view {
         assertEq(token.hasRole(token.DEFAULT_ADMIN_ROLE(), admin), true);
         assertEq(token.hasRole(token.PAUSER_ROLE(), pauser), true);
@@ -132,6 +150,9 @@ contract ERC20UpgradeableTokenV1Test is Test {
         vm.stopPrank();
     }
 
+    ///
+    /// test granting and revoking roles
+    ///
     function testGrantingAndRevokingRoles() public {
         vm.startPrank(admin);
         token.grantRole(token.PAUSER_ROLE(), user);
@@ -150,6 +171,9 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(token.allowance(holder, user), 100 ether);
     }
 
+    ///
+    /// test approving and transferring
+    ///
     function testApprovingAndTransferFrom() public {
         vm.prank(holder);
         token.approve(user, 100 ether);
@@ -161,6 +185,9 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(token.allowance(holder, user), 0 ether);
     }
 
+    ///
+    /// test approving all and transferring from all
+    ///
     function testApprovingAllAndTransferFromAll() public {
         vm.prank(holder);
         token.approve(user, 1000 ether);
@@ -172,7 +199,10 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(token.allowance(holder, user), 0 ether);
     }
 
-    function testApprovingAllAndTrasnferFromHalf() public {
+    ///
+    /// test approving all and transferring from half
+    ///
+    function testApprovingAllAndTransferFromHalf() public {
         vm.prank(holder);
         token.approve(user, 1000 ether);
         vm.prank(user);
@@ -183,6 +213,9 @@ contract ERC20UpgradeableTokenV1Test is Test {
         assertEq(token.allowance(holder, user), 550 ether);
     }
 
+    ///
+    /// test sending tokens
+    ///
     function testSendingTokens() public {
         vm.prank(minter);
         token.mint(address(this), 1000);

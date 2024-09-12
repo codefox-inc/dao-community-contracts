@@ -12,7 +12,7 @@ import {VotingPowerExchange} from "src/VotingPowerExchange.sol";
 import {VotingPowerExchangeTestHelper} from "./utils/VotingPowerExchangeTestHelper.t.sol";
 import {MessageHashUtils} from "lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 
-contract VotingPwoerExchangeTest is Test {
+contract VotingPowerExchangeTest is Test {
     // instances
     GovToken public govToken;
     ERC20UpgradeableTokenV1 public utilityToken;
@@ -611,7 +611,7 @@ contract VotingPwoerExchangeTest is Test {
         vm.stopPrank();
     }
 
-    function testExchangeFailCaseWhenSginatureExpired() public {
+    function testExchangeFailCaseWhenSignatureExpired() public {
         bytes32 nonce = bytes32(0);
         uint256 expirationTime = 3600;
         (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
@@ -680,6 +680,9 @@ contract VotingPwoerExchangeTest is Test {
         vm.stopPrank();
     }
 
+    //////////////////////////////////////////
+    ///// Preparation internal functions /////
+    //////////////////////////////////////////
     /**
      * @dev Creates a digest for EIP-712
      * @param sender The address of the sender
