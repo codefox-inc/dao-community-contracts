@@ -2,9 +2,60 @@
 
 This is a repository for the smart contracts of the DAO community. The smart contracts are written in Solidity and tested using the Foundry testing framework.
 
+# What is this
+
+This is a repository for the smart contracts of the DAO community governance, which is the base tool for the community.
+There are separated tools for the community governance. I will explain them here based on the smart contracts.
+
+This repository consists of the following smart contracts:
+
+- AmbassadorNft.sol
+  - The smart contract for the NFT that represents the membership of the community.
+- ERC20UpgradeableTokenV1.sol
+  - The smart contract for the ERC20 token that is used to represent the utility token of the community.
+  - Its use case is to exchange for the governance token of the community.
+  - Other use cases are remained to be defined by the community.
+- GovToken.sol
+  - The smart contract functioning as the governance token of the community.
+  - The token is used to represent the voting power of the member.
+- VotingPowerExchange.sol
+  - The smart contract for the voting power exchange of the community.
+  - The contract is used to exchange governance token for utility token.
+- MyGovernor.sol
+  - The smart contract for the DAO governance of the community.
+  - The contract is used to manage the proposal of the community in a more decentralized manner.
+- Timelock.sol
+  - The smart contract for the timelock of the community.
+  - This contract will become the owner of the MyGovernor contract.
+
+# Access Roles
+
+- DEFAULT_ADMIN_ROLE: The default admin role is the owner of the contract.
+  - This is the highest authority role in the contract.
+  - Responsibilities: Has the power to manage all other roles.
+  - Functions: Can grant and revoke all other roles.
+- MANAGER_ROLE:
+  - Responsibilities: Can manage the contract and call some special functions.
+  - Functions: `setVotingPowerCap()`
+- EXCHANGER_ROLE: Exchanger role is the role that can exchange the governance token for the utility token.
+  - Responsibilities: Can exchange the governance token for the utility token.
+  - Functions: `exchange()`
+- MINTER_ROLE: The minter role is the role that can mint new tokens.
+  - Responsibilities: Can mint new tokens for the ambassador NFT, the utility token and the governance token.
+  - Functions: `mint()`, `mintBatch()`
+- BURNER_ROLE: The burner role is the role that can burn the tokens for the ambassador NFT, the utility token and the governance token.
+  - Responsibilities: Can burn the tokens.
+  - Functions: `burn()`, `burnBatch()`,`burnByBurner()`
+- URI_SETTER_ROLE: The URI setter role is the role that can set the URI of the token.
+  - Responsibilities: Can set the URI of the token.
+  - Functions: `setURI()`
+- UPGRADER_ROLE: The upgrader role is the role that can upgrade the contract.
+  - Responsibilities: Can upgrade the contract.
+  - Functions: `upgradeToAndCall()`
+
 # How to Start
 
-1. Clone the repository.
+1. Clone the repository `git clone https://github.com/codefox-inc/dao-community-contracts.git`.
 2. Update the foundry dependencies by running `foundryup`.
 3. Install the dependencies using `make install`.
 4. Compile the contracts using `forge compile`.
