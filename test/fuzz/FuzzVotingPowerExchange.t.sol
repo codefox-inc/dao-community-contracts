@@ -136,6 +136,33 @@ contract VotingPwoerExchangeTest is Test {
         assertEq(govToken.balanceOf(participant2), exchangedVotingPower);
     }
 
+    function testExchangeWithAnyAmountWithinNewCapWillSucceed(uint256 amount) public {
+        // mint 75240 utility token to the participant2
+        vm.startPrank(minter);
+        utilityToken.mint(participant2, 92675 * 1e18);
+        vm.stopPrank();
+
+        // set the cap to 49e18
+        vm.prank(manager);
+        votingPowerExchange.setVotingPowerCap(110e18);
+        vm.stopPrank();
+        // start testing
+        amount = bound(amount, 1e18, 92675 * 1e18);
+        bytes32 nonce = bytes32(0);
+        uint256 expiration = block.timestamp + 1000000000;
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), amount, nonce, expiration, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        votingPowerExchange.exchange(participant2, amount, nonce, expiration, signature);
+        vm.stopPrank();
+        // check the balance of the participant2
+        assertEq(utilityToken.balanceOf(participant2), 102675 * 1e18 - amount); // he got 10000 token in advance
+        uint256 exchangedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(amount, 0);
+        // check the balance of the govToken
+        assertEq(govToken.balanceOf(participant2), exchangedVotingPower);
+    }
+
     function testExchangeWithAnyRoleWhoIsNotExchangerWillRevert(address anyRole) public {
         vm.assume(anyRole != exchanger);
         bytes32 nonce = bytes32(0);
@@ -170,6 +197,39 @@ contract VotingPwoerExchangeTest is Test {
         vm.stopPrank();
     }
 
+    function testExchangeWithAnyExpirationWhichIsExpiredWillRevert(uint256 expiration) public {
+        vm.warp(1641070800);
+        expiration = bound(expiration, 0, block.timestamp - 1);
+        bytes32 nonce = bytes32(0);
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, expiration, address(votingPowerExchange)
+        );
+
+        vm.startPrank(exchanger);
+        vm.expectRevert(VotingPowerExchange.VotingPowerExchange__SignatureExpired.selector);
+        votingPowerExchange.exchange(participant2, 1_100 * 1e18, nonce, expiration, signature);
+        vm.stopPrank();
+    }
+
+    function testExchangeWithAnyExpirationWhichIsNotExpiredWillSucceed(uint256 expiration) public {
+        vm.warp(100);
+        vm.assume(expiration > block.timestamp);
+        bytes32 nonce = bytes32(0);
+        (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
+            dc.DEFAULT_ANVIL_KEY2(), 1_100 * 1e18, nonce, expiration, address(votingPowerExchange)
+        );
+        vm.startPrank(exchanger);
+        votingPowerExchange.exchange(participant2, 1_100 * 1e18, nonce, expiration, signature);
+        vm.stopPrank();
+
+        // check the balance of the participant2
+        assertEq(utilityToken.balanceOf(participant2), 10_000 * 1e18 - 1_100 * 1e18); // he got 10000 token in advance
+        uint256 exchangedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(1_100 * 1e18, 0);
+        // check the balance of the govToken
+        assertEq(govToken.balanceOf(participant2), exchangedVotingPower);
+    }
+
+    ///////////////////////////
     ///// Other functions /////
     ///////////////////////////
     /// The `setVotingPowerCap` function
