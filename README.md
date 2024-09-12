@@ -2,33 +2,41 @@
 
 This is a repository for the smart contracts of the DAO community. The smart contracts are written in Solidity and tested using the Foundry testing framework.
 
-# What is this
+## Smart Contracts introduction
 
-This is a repository for the smart contracts of the DAO community governance, which is the base tool for the community.
-There are separated tools for the community governance. I will explain them here based on the smart contracts.
+This is a repository for the smart contracts of the DAO community governance, which is some basic tools for the community.
+There are separated tools for the community governance. It will be explained here based on the smart contracts.
+
+All the contracts are sitting in the `src/` folder. These are the core contracts of the protocol.
 
 This repository consists of the following smart contracts:
 
 - AmbassadorNft.sol
   - The smart contract for the NFT that represents the membership of the community.
+  - This smart contract is independent from the other smart contracts.
+  - The contract is based on the ERC1155 contract of the OpenZeppelin.
 - ERC20UpgradeableTokenV1.sol
   - The smart contract for the ERC20 token that is used to represent the utility token of the community.
-  - Its use case is to exchange for the governance token of the community.
-  - Other use cases are remained to be defined by the community.
+  - Its use case is to be exchanged for the governance token of the community.
+  - Other use cases are possible and it is remained to be defined by the community.
+  - The contract is based on the ERC20Upgradeable contract of the OpenZeppelin.
 - GovToken.sol
   - The smart contract functioning as the governance token of the community.
-  - The token is used to represent the voting power of the member.
+  - The token is used to represent the voting power of the holder.
+  - The contract is based on the ERC20 contract of the OpenZeppelin.
 - VotingPowerExchange.sol
   - The smart contract for the voting power exchange of the community.
-  - The contract is used to exchange governance token for utility token.
+  - The contract is used to get the governance token by burning the utility token the user holds.
+  - This contract is created from scratch.
 - MyGovernor.sol
   - The smart contract for the DAO governance of the community.
   - The contract is used to manage the proposal of the community in a more decentralized manner.
+  - The contract is based on the Governor contract of the OpenZeppelin.
 - Timelock.sol
   - The smart contract for the timelock of the community.
   - This contract will become the owner of the MyGovernor contract.
 
-# Access Roles
+## Access Roles
 
 - DEFAULT_ADMIN_ROLE: The default admin role is the owner of the contract.
   - This is the highest authority role in the contract.
@@ -53,7 +61,38 @@ This repository consists of the following smart contracts:
   - Responsibilities: Can upgrade the contract.
   - Functions: `upgradeToAndCall()`
 
-# How to Start
+## About auditing
+
+### Scope
+
+- src/
+  - AmbassadorNft.sol
+  - ERC20UpgradeableTokenV1.sol
+  - GovToken.sol
+  - VotingPowerExchange.sol
+  - MyGovernor.sol
+  - Timelock.sol
+
+### Out of Scope
+
+Any file except for the files in the above Scope.
+
+### Known issues or informations
+
+- Because we are using a mathematical formula(mentioned in the _Reference_ section) which including square root calculation, some precision loss happens in the calculation. e.g. if we exchange 1e9 utility token for the governance token theoretically, what we get is zero token. Because of that, we made the value of the utility token to be 1e18 at least if someone wants to call the `exchange` function.
+- maybe the tests, also fuzz tests, are not able to cover all the edge cases. if you find any issues, please let us know.
+
+## Tests
+
+The tests are written in the `test/` directory. And it consists of the following tests:
+
+- unit tests: `test/unit/`
+- integration tests: `test/integration/`
+- fuzz tests: `test/fuzz/`
+
+More information about the tests is written in the `test/readme.md`. Please refer to it for more details about the tests.
+
+## How to Start
 
 1. Clone the repository `git clone https://github.com/codefox-inc/dao-community-contracts.git`.
 2. Update the foundry dependencies by running `foundryup`.
@@ -62,9 +101,9 @@ This repository consists of the following smart contracts:
 5. Run the test using `make test`.
 6. Run the coverage using `make coverage`.
 
-# Reference
+## Reference
 
-## voting power calculation table
+### voting power calculation table
 
 These are the values we used in the fuzz tests for voting power <-> burned token calculation.
 
