@@ -4,7 +4,9 @@ pragma solidity 0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
 
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {AmbassadorNft} from "src/AmbassadorNft.sol";
+import {IERC1155, IERC1155MetadataURI, ERC165} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 contract AmbassadorTest is Test {
     // instances
@@ -55,6 +57,14 @@ contract AmbassadorTest is Test {
     }
 
     ///
+    /// test the constructor validation
+    ///
+    function testConstructorWillRevertIfAdminIsZero() public {
+        vm.expectRevert();
+        new AmbassadorNft(address(0), minter, burner, uriSetter);
+    }
+
+    ///
     /// test the minting process of tokens
     ///
     function testMintingTokensSuccessfully() public {
@@ -71,6 +81,9 @@ contract AmbassadorTest is Test {
         assertEq(ambassadorNft.balanceOf(minter, 5), 1);
     }
 
+    ///
+    /// test the minting process of tokens by non-minter
+    ///
     function testMintingTokenWillFailByNonMinter() public {
         // mint some tokens
         vm.expectRevert();
@@ -81,6 +94,9 @@ contract AmbassadorTest is Test {
         ambassadorNft.mint(blueUser, 2, 1, "");
     }
 
+    ///
+    /// test the minting process of tokens by new minter
+    ///
     function testMintingTokenWillSucceedByNewMinter() public {
         // when non-minter mint some tokens
         vm.startPrank(blackUser);
@@ -129,6 +145,9 @@ contract AmbassadorTest is Test {
         assertEq(ambassadorNft.balanceOf(minter, 5), 0);
     }
 
+    ///
+    /// test the burning process of tokens by non-burner
+    ///
     function testBurningTokenWillFailByNonBurner() public {
         // mint some tokens
         vm.startPrank(minter);
@@ -146,6 +165,9 @@ contract AmbassadorTest is Test {
         ambassadorNft.burn(blueUser, 2, 1);
     }
 
+    ///
+    /// test the burning process of tokens by new burner
+    ///
     function testBurningTokenWillSucceedByNewBurner() public {
         // mint some tokens
         vm.startPrank(minter);
@@ -171,10 +193,65 @@ contract AmbassadorTest is Test {
         assertEq(ambassadorNft.balanceOf(blueUser, 2), 0);
     }
 
+    function testBurnBatchCanBeCalledByBurner() public {
+        // prepare test data
+        address testAccount = address(3);
+        uint256[] memory ids = new uint256[](2);
+        ids[0] = 3;
+        ids[1] = 4;
+        uint256[] memory values = new uint256[](2);
+        values[0] = 1;
+        values[1] = 12;
+        uint256[] memory burningValues = new uint256[](2);
+        burningValues[0] = 1;
+        burningValues[1] = 11;
+
+        // mint some tokens
+        vm.startPrank(minter);
+        ambassadorNft.mintBatch(testAccount, ids, values, "");
+        vm.stopPrank();
+
+        // try to call burnBatch
+        vm.startPrank(burner);
+        ambassadorNft.burnBatch(testAccount, ids, burningValues);
+        vm.stopPrank();
+
+        // check the balances
+        assertEq(ambassadorNft.balanceOf(testAccount, 3), 0);
+        assertEq(ambassadorNft.balanceOf(testAccount, 4), 1);
+    }
+
+    function testBurnBatchWillFailByNonBurner() public {
+        // prepare test data
+        address testAccount = address(3);
+        uint256[] memory ids = new uint256[](2);
+        ids[0] = 3;
+        ids[1] = 4;
+        uint256[] memory values = new uint256[](2);
+        values[0] = 1;
+        values[1] = 12;
+        uint256[] memory burningValues = new uint256[](2);
+        burningValues[0] = 1;
+        burningValues[1] = 11;
+
+        // mint some tokens
+        vm.startPrank(minter);
+        ambassadorNft.mintBatch(testAccount, ids, values, "");
+        vm.stopPrank();
+        // try to call burnBatch
+        vm.startPrank(blackUser);
+    vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, blackUser, ambassadorNft.BURNER_ROLE()));
+        ambassadorNft.burnBatch(testAccount, ids, burningValues);
+        vm.stopPrank();
+    }
+
     /////////////////////////////////////////////////////
     ///////////// ERC1155 NORMAL TEST CASES /////////////
     /////////////////////////////////////////////////////
 
+    ///
+    /// test the setting process of URI
+    ///
     function testSetURI() public {
         // set the URI
         vm.prank(uriSetter);
@@ -200,6 +277,9 @@ contract AmbassadorTest is Test {
         assertEq(ambassadorNft.balanceOf(user2, 1), 1);
     }
 
+    ///
+    /// test the balanceOfBatch function
+    ///
     function testBalanceOfBatchWorks() public view {
         // check the balances
         uint256[] memory ids = new uint256[](2);
@@ -215,6 +295,9 @@ contract AmbassadorTest is Test {
         assertEq(balances[1], 1);
     }
 
+    ///
+    /// test the transfer process of tokens
+    ///
     function testTransferWillWork() public {
         // check the balances
         assertEq(ambassadorNft.balanceOf(user, 0), 1);
@@ -227,5 +310,38 @@ contract AmbassadorTest is Test {
         // check the balances
         assertEq(ambassadorNft.balanceOf(user, 0), 0);
         assertEq(ambassadorNft.balanceOf(user3, 0), 1);
+    }
+
+    ///
+    /// test the mintBatch function
+    ///
+    function testMintBatchWillWork() public {
+        // construct the ids and amounts arrays
+        uint256[] memory ids = new uint256[](2);
+        uint256[] memory amounts = new uint256[](2);
+        ids[0] = 3;
+        amounts[0] = 1;
+        ids[1] = 4;
+        amounts[1] = 1;
+
+        // mint some tokens
+        vm.startPrank(minter);
+        ambassadorNft.mintBatch(user, ids, amounts, "");
+        vm.stopPrank();
+
+        // check the balances
+        assertEq(ambassadorNft.balanceOf(user, 3), 1);
+        assertEq(ambassadorNft.balanceOf(user, 4), 1);
+    }
+
+    ///
+    /// test supportsInterface function
+    ///
+    function testSupportsInterface() public view {
+        // check the supportsInterface function
+        assertEq(ambassadorNft.supportsInterface(type(IERC1155).interfaceId), true);
+        assertEq(ambassadorNft.supportsInterface(type(IERC1155MetadataURI).interfaceId), true);
+        assertEq(ambassadorNft.supportsInterface(type(IAccessControl).interfaceId), true);
+        assertEq(ambassadorNft.supportsInterface(type(ERC165).interfaceId), true);
     }
 }
