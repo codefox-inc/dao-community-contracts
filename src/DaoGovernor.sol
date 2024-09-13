@@ -4,7 +4,7 @@
 
 pragma solidity 0.8.24;
 
-import {Governor} from "@openzeppelin/contracts/governance/Governor.sol";
+import {Governor, IGovernor} from "@openzeppelin/contracts/governance/Governor.sol";
 import {GovernorSettings} from "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
 import {GovernorCountingSimple} from "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
 import {GovernorVotes, IVotes} from "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
@@ -15,7 +15,7 @@ import {
     TimelockController
 } from "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
 
-contract MyGovernor is
+contract DaoGovernor is
     Governor,
     GovernorSettings,
     GovernorCountingSimple,
@@ -23,11 +23,19 @@ contract MyGovernor is
     GovernorVotesQuorumFraction,
     GovernorTimelockControl
 {
+    // TODO: should decide first, second, third arguments before deploying the contract
+    // TODO: should decide the quorum fraction before deploying the contract.
     constructor(IVotes _token, TimelockController _timelock)
-        Governor("MyGovernor")
-        GovernorSettings(1 days, 1 weeks, 0)
+        Governor("DaoGovernor")
+        // fist argument: delay since proposal is created until voting starts.
+        // second argument: duration of voting.
+        // third argument: minimum number of votes required to create a proposal.
+        GovernorSettings(1 days, 1 weeks, 1e18)
+        // governance token
         GovernorVotes(_token)
-        GovernorVotesQuorumFraction(10)
+        // quorum: minimum number of votes required to pass a proposal.
+        GovernorVotesQuorumFraction(1) // 1% of the total supply must vote for a proposal to be passed.
+        // timelock: timelock contract to execute the proposal.
         GovernorTimelockControl(_timelock)
     {}
 
