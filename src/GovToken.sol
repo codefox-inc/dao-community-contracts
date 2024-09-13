@@ -23,7 +23,6 @@ contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vote
     // added for recording the amount of utility tokens burned by a specific account
     mapping(address account => uint256 burnedAmount) public burnedAmountOfUtilToken;
 
-    /// votingPowerExchange role is supposed to be only granted to VotingPowerExchange contract
     constructor(
         string memory name,
         string memory symbol,
@@ -38,12 +37,13 @@ contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vote
         _grantRole(MINTER_ROLE, minter);
         _grantRole(BURNER_ROLE, burner);
         _grantRole(BURNER_ROLE, burner);
+        // votingPowerExchange role is supposed to be only granted to VotingPowerExchange contract
         _grantRole(VOTING_POWER_EXCHANGE_ROLE, votingPowerExchange);
     }
 
     // The following functions are overrides required by Solidity.
     /// @dev this function is intentionally made this way to not allow token transfer
-    /// @dev instead minting and burning is allowed
+    /// @dev on the other hand, minting and burning are allowed
     /// @dev added this function to the original contract
     ///
     function _update(address from, address to, uint256 value) internal override(ERC20, ERC20Votes) {
@@ -84,15 +84,28 @@ contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vote
         emit burnedAmountOfUtilTokenSet(account, amount);
     }
 
+    /**
+     * @notice Overrides the clock function to return the current timestamp.
+     * @return The current timestamp.
+     */
     function clock() public view override returns (uint48) {
         return uint48(block.timestamp);
     }
 
+    /**
+     * @notice Overrides the CLOCK_MODE function to return the current timestamp.
+     * @return The current timestamp.
+     */
     // solhint-disable-next-line func-name-mixedcase
     function CLOCK_MODE() public pure override returns (string memory) {
         return "mode=timestamp";
     }
 
+    /**
+     * @notice Overrides the nonces function to return the nonce of the owner.
+     * @param owner The address of the owner.
+     * @return The nonce of the owner.
+     */
     function nonces(address owner) public view override(ERC20Permit, Nonces) returns (uint256) {
         return super.nonces(owner);
     }

@@ -161,6 +161,8 @@ No one is allowed to get more voting power than the cap.
 
 After the calculation, the function will mint the governance token to the holder and burn the utility token from the holder.
 
+The function also updates the amount of the utility token that the holder has burned in the GovToken contract.
+
 #### Notes
 
 - The contract is created from scratch.

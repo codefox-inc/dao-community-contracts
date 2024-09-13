@@ -295,7 +295,7 @@ contract GovTokenTest is Test {
                                 "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
                             ),
                             owner,
-                            address(this),
+                            address(12),
                             1 ether,
                             0,
                             deadline
@@ -305,13 +305,18 @@ contract GovTokenTest is Test {
             )
         );
 
-        govToken.permit(owner, address(this), 1 ether, deadline, v, r, s);
+        govToken.permit(owner, address(12), 1 ether, deadline, v, r, s);
 
         // check if nonce is incremented after permit
         assertEq(govToken.nonces(owner), 1, "Nonce should be incremented after permit");
 
         // other user's nonce should still be 0
         assertEq(govToken.nonces(user), 0, "Other user's nonce should still be 0");
+        // transfer the token to user2 on behalf of owner will fail
+        vm.prank(address(12));
+        vm.expectRevert(GovToken.TokenTransferNotAllowed.selector);
+        govToken.transferFrom(owner, user2, 1 ether);
+        // In fact ERC20Permit is technically not used in this contract due to the token's untransferability.
     }
 
     function testDelegateBySig() public {
@@ -347,6 +352,64 @@ contract GovTokenTest is Test {
 
         // Other user's delegate should still be address(0)
         assertEq(govToken.delegates(user), address(0), "Other user's delegate should still be address(0)");
+    }
+
+    function testDelegates() public view {
+        // check the initial delegate of the user
+        assertEq(govToken.delegates(user), address(0), "Initial delegate should be address(0)");
+
+        // check the initial delegate of the user2
+        assertEq(govToken.delegates(user2), address(0), "Initial delegate should be address(0)");
+
+        // check the initial delegate of the user3
+        assertEq(govToken.delegates(user3), address(0), "Initial delegate should be address(0)");
+    }
+
+    function testInitialVotes() public view {
+        // check the initial votes of the user
+        assertEq(govToken.getVotes(user), 0, "Initial votes should be 0");
+
+        // check the initial votes of the user2
+        assertEq(govToken.getVotes(user2), 0, "Initial votes should be 0");
+
+        // check the initial votes of the user3
+        assertEq(govToken.getVotes(user3), 0, "Initial votes should be 0");
+    }
+
+    function testVotesAfterSelfDelegate() public {
+        // check the initial votes of the user
+        assertEq(govToken.getVotes(user), 0, "Initial votes should be 0");
+        // test the votes of the user after delegate to himself
+        vm.startPrank(user);
+        govToken.delegate(user);
+        vm.stopPrank();
+
+        // check the votes of the user
+        assertEq(govToken.getVotes(user), 100 ether, "Votes should be 100 ether");
+
+        // check the initial votes of the user3
+        assertEq(govToken.getVotes(user3), 0, "Initial votes should be 0");
+    }
+
+    function testVotesAfterDelegateToOther() public {
+        // check the initial votes of the user
+        assertEq(govToken.getVotes(user), 0, "Initial votes should be 0");
+        // check the initial votes of the user2
+        assertEq(govToken.getVotes(user2), 0, "Initial votes should be 0");
+
+        // test the votes of the user after delegate to user2
+        vm.prank(user2);
+        govToken.delegate(user2);
+
+        assertEq(govToken.getVotes(user2), 100 ether, "Votes should be 100 ether");
+
+        vm.prank(user);
+        govToken.delegate(user2);
+
+        // check the votes of the user
+        assertEq(govToken.getVotes(user), 0, "Votes should be 0");
+        // check the votes of the user2
+        assertEq(govToken.getVotes(user2), 200 ether, "Votes should be 100 ether");
     }
 
     function testClock() public {
