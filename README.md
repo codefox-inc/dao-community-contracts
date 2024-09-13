@@ -22,7 +22,7 @@ This repository consists of the following smart contracts:
   - The contract is based on the ERC20Upgradeable contract of the OpenZeppelin.
 - GovToken.sol
   - The smart contract functioning as the governance token of the community.
-  - The token is used to represent the voting power of the holder.
+  - The token is used to represent the voting power of the holder which is not transferable.
   - The contract is based on the ERC20 contract of the OpenZeppelin.
 - VotingPowerExchange.sol
   - The smart contract for the voting power exchange of the community.
@@ -77,10 +77,15 @@ This repository consists of the following smart contracts:
 
 Any file except for the files in the above Scope.
 
-### Known issues or informations
+### Known issues
+
+- Two step ownership transfer process is a known issue. We accept the risk of it.
+- The precision loss in the calculation of the voting power and the burned token is existing but the precision loss will not be a problem because the value loss caused by it is very small, e.g. 1e9 token. It is ignorable.
+
+### notes
 
 - Because we are using a mathematical formula(mentioned in the _Reference_ section) which including square root calculation, some precision loss happens in the calculation. e.g. if we exchange 1e9 utility token for the governance token theoretically, what we get is zero token. Because of that, we made the value of the utility token to be 1e18 at least if someone wants to call the `exchange` function.
-- maybe the tests, also fuzz tests, are not able to cover all the edge cases. if you find any issues, please let us know.
+- Maybe the tests, also fuzz tests, are not able to cover all the edge cases. if you find any issues, please let us know.
 
 ## Tests
 
@@ -96,18 +101,21 @@ More information about the tests is written in the `test/readme.md`. Please refe
 
 1. Clone the repository `git clone https://github.com/codefox-inc/dao-community-contracts.git`.
 2. Update the foundry dependencies by running `foundryup`.
-3. Install the dependencies using `make install`.
-4. Compile the contracts using `forge compile`.
-5. Run the test using `make test`.
-6. Run the coverage using `make coverage`.
+3. Install the dependencies by running `make install`.
+4. Compile the contracts by running `forge compile`.
+5. Run the test by running `make test`.
+6. Run the coverage by running `make coverage`.
 
-## Reference
+## References
 
-### voting power calculation table
+### Documents
 
-These are the values we used in the fuzz tests for voting power <-> burned token calculation.
+- [Foundry Book](https://book.getfoundry.sh/)
+- [OpenZeppelin](https://docs.openzeppelin.com/)
 
-- Function:
+### Mathematical Formula and tables
+
+These are the values we used in the exchange function and tests for voting power <-> burned token calculation.
 
 ```
 x = (2 \* sqrt(306.25 + 30y) - 5) / 30 - 1
@@ -116,8 +124,6 @@ y = (15*x^2+35*x)/2
 x: mintedToken
 y: burnedToken
 ```
-
-- Table:
 
 | Minted Token (lvl) | Level | Burned Token |
 | ------------------ | ----- | ------------ |
@@ -235,18 +241,7 @@ y: burnedToken
 
 ....
 
-## Foundry
-
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
-
-Foundry consists of:
-
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
+### Used Framework's documentation
 
 https://book.getfoundry.sh/
 
