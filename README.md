@@ -2,7 +2,7 @@
 
 This is a repository for the smart contracts of the DAO community. The smart contracts are written in Solidity and tested using the Foundry testing framework.
 
-## Smart Contracts introduction
+## Introduction
 
 This is a repository for the smart contracts of the DAO community governance, which is some basic tools for the community.
 There are separated tools for the community governance. It will be explained here based on the smart contracts.
@@ -36,7 +36,9 @@ This repository consists of the following smart contracts:
   - The smart contract for the timelock of the community.
   - This contract will become the owner of the MyGovernor contract.
 
-## Access Roles
+## Roles
+
+The system is managed by different roles. The roles are managed by the default admin role.
 
 - DEFAULT_ADMIN_ROLE: The default admin role is the owner of the contract.
   - This is the highest authority role in the contract.
@@ -60,6 +62,42 @@ This repository consists of the following smart contracts:
 - UPGRADER_ROLE: The upgrader role is the role that can upgrade the contract.
   - Responsibilities: Can upgrade the contract.
   - Functions: `upgradeToAndCall()`
+
+## Smart Contracts
+
+### AmbassadorNft.sol
+
+This is the smart contract for the NFT that represents the membership of the community. I will give some explanation for the possible use cases and the functions of the NFT.
+
+#### Possible use cases and functions explanation
+
+The NFT can be used to represent the membership of the community. For example, membership of A can be represented by NFT1155's id 0 and membership of B can be represented by NFT1155's id 1. Anyone who holds the NFT can be considered as the member of the community.
+
+The default admin role has the right to set the minter and the burner role. The minter role is the role that can mint new tokens. The burner role is the role that can burn the tokens from the specified account.
+
+There are functions to batch mint and batch burn the NFTs. With these functions, the minter and burner roles can easily mint and burn the NFTs for the members.
+
+And the URI of the NFT can be set by the URI setter role after the deployment of the contract.
+
+### ERC20UpgradeableTokenV1.sol
+
+This is the smart contract for the ERC20 token that is used to represent the utility token of the community. This utility token is transferable.
+
+#### Possible use cases and functions explanation
+
+This token is used as the utility token for the community, which can be earned by doing missions or other activities for the community. The users can use utility token to exchange the governance token.
+
+The default admin role has the right to set the minter and the burner role. The minter role is the role that can mint new tokens. The burner role is the role that can burn the tokens from the specified account.
+
+The contract itself is pausable. The pauser role is the role that can pause and unpause the contract. When the contract is paused, the minting and transferring of the token are disabled.
+
+### GovToken.sol
+
+### VotingPowerExchange.sol
+
+### MyGovernor.sol
+
+### Timelock.sol
 
 ## About auditing
 

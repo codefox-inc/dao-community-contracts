@@ -8,6 +8,7 @@ import {IAccessControl} from
     "openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {ERC20UpgradeableTokenV1} from "src/ERC20UpgradeableTokenV1.sol";
 import {ERC20UpgradeableTokenV2} from "../mocks/ERC20UpgradeableTokenV2.sol";
+import {PausableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
 
 contract ERC20UpgradeableTokenV1Test is Test {
     // instances of contracts
@@ -226,6 +227,31 @@ contract ERC20UpgradeableTokenV1Test is Test {
     }
 
     ///
+    /// test pausing and unpausing the token
+    ///
+    function testPausingAndUnpausingSuccessfully() public {
+        vm.startPrank(pauser);
+        token.pause();
+        assertEq(token.paused(), true);
+        token.unpause();
+        assertEq(token.paused(), false);
+        vm.stopPrank();
+    }
+
+    function testWhenPausedNoMintingOrTransferringIsAllowed() public {
+        vm.prank(pauser);
+        token.pause();
+        assertEq(token.paused(), true);
+
+        vm.prank(minter);
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        token.mint(user, 100);
+        vm.startPrank(holder);
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        token.transfer(user, 100);
+        vm.stopPrank();
+    }
+
     /// test upgradeability of the token
     ///
     function testUpgradeabilityOfToken() public {
