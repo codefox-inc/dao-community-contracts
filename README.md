@@ -65,7 +65,7 @@ The system is managed by different roles. The roles are managed by the default a
 
 ## Smart Contracts
 
-### AmbassadorNft.sol
+### `AmbassadorNft.sol`
 
 This is the smart contract for the NFT that represents the membership of the community. I will give some explanation for the possible use cases and the functions of the NFT.
 
@@ -79,7 +79,7 @@ There are functions to batch mint and batch burn the NFTs. With these functions,
 
 And the URI of the NFT can be set by the URI setter role after the deployment of the contract.
 
-### ERC20UpgradeableTokenV1.sol
+### `ERC20UpgradeableTokenV1.sol`
 
 This is the smart contract for the ERC20 token that is used to represent the utility token of the community. This utility token is transferable.
 
@@ -97,9 +97,11 @@ The contract itself is pausable. The pauser role is the role that can pause and 
 - The contract is pausable.
 - The contract is ERC20Permit compliant.
 
-### GovToken.sol
+### `GovToken.sol`
 
-This is the smart contract for the governance token of the community. The contract is based on the ERC20Votes contract of the OpenZeppelin.
+This is the smart contract for the governance token of the community. The contract is based on the ERC20Votes contract of the OpenZeppelin. The contract also records the amount of utility token that one holder has burned.
+
+Only the voting power exchange contract has the right to update the amount of utility token that one holder has burned.
 
 #### Use cases and functions explanation
 
@@ -112,7 +114,7 @@ ERC20Permit is inherited here because OpenZeppelin's wizard is doing so and we f
 
 #### Notes
 
-There are 2 phases when we want to utilize this token. After kicking off as Phase 1, the community governance will be under observation. When phase 1 is stable and mature, we will transition into phase 2 gradually.
+There are 2 phases when we want to utilize this token in the protocol. After kicking off as Phase 1, the community governance will be under observation. When phase 1 is stable and mature, we will transition into phase 2 gradually in the future.
 
 - Phase 1:
   We use the token to represent the voting power of the holder. And manage governance off-chain using the token balance of the governance participants.
@@ -121,7 +123,9 @@ There are 2 phases when we want to utilize this token. After kicking off as Phas
 
 The GovToken is in a sense an achievement recorder. We want to make sure the achievement system is transparent and verifiable for all participants. That is why we did not make this token upgradable.
 
-### VotingPowerExchange.sol
+In fact, voting units in the token must be delegated to someone to be counted as actual voting power.
+
+### `VotingPowerExchange.sol`
 
 #### Use cases and functions explanation
 
@@ -130,9 +134,9 @@ The GovToken is in a sense an achievement recorder. We want to make sure the ach
 - The contract is created from scratch.
 - `SafeERC20` is not used because the token contract we are using is known to be safe.
 
-### MyGovernor.sol
+### `MyGovernor.sol`
 
-### Timelock.sol
+### `Timelock.sol`
 
 ## About auditing
 
@@ -172,12 +176,41 @@ More information about the tests is written in the `test/readme.md`. Please refe
 
 ## How to Start
 
-1. Clone the repository `git clone https://github.com/codefox-inc/dao-community-contracts.git`.
-2. Update the foundry dependencies by running `foundryup`.
-3. Install the dependencies by running `make install`.
-4. Compile the contracts by running `forge compile`.
-5. Run the test by running `make test`.
-6. Run the coverage by running `make coverage`.
+1. Clone the repository
+
+```shell
+git clone https://github.com/codefox-inc/dao-community-contracts.git
+```
+
+2. Update the foundry dependencies by running
+
+```shell
+foundryup
+```
+
+3. Install the dependencies by running
+
+```shell
+make install
+```
+
+4. Compile the contracts by running
+
+```shell
+forge compile
+```
+
+5. Run the test by running
+
+```shell
+make test
+```
+
+6. Run the coverage by running
+
+```shell
+make coverage
+```
 
 ## References
 
