@@ -83,7 +83,7 @@ And the URI of the NFT can be set by the URI setter role after the deployment of
 
 This is the smart contract for the ERC20 token that is used to represent the utility token of the community. This utility token is transferable.
 
-#### Possible use cases and functions explanation
+#### Use cases and functions explanation
 
 This token is used as the utility token for the community, which can be earned by doing missions or other activities for the community. The users can use utility token to exchange the governance token.
 
@@ -91,9 +91,44 @@ The default admin role has the right to set the minter and the burner role. The 
 
 The contract itself is pausable. The pauser role is the role that can pause and unpause the contract. When the contract is paused, the minting and transferring of the token are disabled.
 
+#### Notes
+
+- The contract is upgradable.
+- The contract is pausable.
+- The contract is ERC20Permit compliant.
+
 ### GovToken.sol
 
+This is the smart contract for the governance token of the community. The contract is based on the ERC20Votes contract of the OpenZeppelin.
+
+#### Use cases and functions explanation
+
+The token is used to represent the voting power of the holder. The token is not transferable. At the same time, it is also used to represent the level of the holder, e.g. the higher the level, the more voting power the holder has.
+For example, holding 1 token means the holder is level 2. Holding 0 token means the holder is level 1.
+
+The token is not transferable. It means the token holder cannot transfer the token to any other address.
+
+ERC20Permit is inherited here because OpenZeppelin's wizard is doing so and we followed its code, which is a relatively secure way in our opinion.
+
+#### Notes
+
+There are 2 phases when we want to utilize this token. After kicking off as Phase 1, the community governance will be under observation. When phase 1 is stable and mature, we will transition into phase 2 gradually.
+
+- Phase 1:
+  We use the token to represent the voting power of the holder. And manage governance off-chain using the token balance of the governance participants.
+- Phase 2:
+  We use the token to represent the level of the holder. And manage governance on-chain using the token balance of the governance participants.
+
+The GovToken is in a sense an achievement recorder. We want to make sure the achievement system is transparent and verifiable for all participants. That is why we did not make this token upgradable.
+
 ### VotingPowerExchange.sol
+
+#### Use cases and functions explanation
+
+#### Notes
+
+- The contract is created from scratch.
+- `SafeERC20` is not used because the token contract we are using is known to be safe.
 
 ### MyGovernor.sol
 

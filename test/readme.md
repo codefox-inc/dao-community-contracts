@@ -101,6 +101,7 @@ This is the token contract for the governance system.
 - testTheRolesOfTheGovToken
 - testTheTokenInfos
 - testNonces
+- testDelegateBySig
 - testClock
 
 ## Integration Tests

@@ -314,6 +314,41 @@ contract GovTokenTest is Test {
         assertEq(govToken.nonces(user), 0, "Other user's nonce should still be 0");
     }
 
+    function testDelegateBySig() public {
+        uint256 privateKey = DEFAULT_ANVIL_KEY2;
+        address owner = vm.addr(privateKey);
+        // Initial delegate should be address(0)
+        assertEq(govToken.delegates(owner), address(0), "Initial delegate should be address(0)");
+        assertEq(govToken.nonces(owner), 0, "Initial nonce should be 0");
+
+        // Simulate a delegateBySig to change the delegate
+        uint256 nonce = govToken.nonces(owner);
+        uint256 expiry = block.timestamp + 1 hours;
+        bytes32 DELEGATION_TYPEHASH = keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
+        // sign the delegateBySig by owner
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            privateKey,
+            keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    govToken.DOMAIN_SEPARATOR(),
+                    keccak256(abi.encode(DELEGATION_TYPEHASH, address(this), nonce, expiry))
+                )
+            )
+        );
+
+        govToken.delegateBySig(address(this), nonce, expiry, v, r, s);
+
+        // Check if delegate is changed after delegateBySig
+        assertEq(govToken.delegates(owner), address(this), "Delegate should be changed after delegateBySig");
+
+        // Check if nonce is incremented after delegateBySig
+        assertEq(govToken.nonces(owner), 1, "Nonce should be incremented after delegateBySig");
+
+        // Other user's delegate should still be address(0)
+        assertEq(govToken.delegates(user), address(0), "Other user's delegate should still be address(0)");
+    }
+
     function testClock() public {
         // set up a timestamp
         uint256 currentTimestamp = 1678901234; // 2023-03-15 12:33:54 UTC
