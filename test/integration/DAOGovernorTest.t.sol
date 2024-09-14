@@ -104,6 +104,17 @@ contract DAOGovernorTest is Test {
         vm.stopPrank();
     }
 
+    function testBasicInfo() public {
+        assertEq(daoGovernor.votingDelay(), 1 days);
+        assertEq(daoGovernor.votingPeriod(), 1 weeks);
+        vm.warp(block.timestamp + 1 minutes);
+        vm.roll(block.number + 5);
+        assertEq(daoGovernor.quorum(block.timestamp - 1), govToken.totalSupply() * 1 / 100);
+        assertTrue(daoGovernor.proposalNeedsQueuing(1));
+        // test proposalThreshold
+        assertEq(daoGovernor.proposalThreshold(), 1e18);
+    }
+
     function testCannotMintTokenWithoutDaoGovernance() public {
         vm.prank(participant2);
         vm.expectRevert();
@@ -167,5 +178,44 @@ contract DAOGovernorTest is Test {
         assertEq(govToken.balanceOf(ourAddress), 1000e18);
 
         assertEq(uint256(daoGovernor.state(proposalId)), uint256(IGovernor.ProposalState.Executed));
+    }
+
+    function testGovernorCanGetProposedAndGetCancelled() public {
+        address ourAddress = makeAddr("ourAddress");
+        string memory description = "mint 1000e18 to our address";
+        bytes memory encodeFunctionData = abi.encodeWithSignature("mint(address,uint256)", ourAddress, 1000e18);
+        targets.push(address(govToken));
+        values.push(0);
+        calldatas.push(encodeFunctionData);
+
+        // at least 1 block later(12 seconds)
+        vm.warp(block.timestamp + 15);
+        vm.roll(block.number + 1);
+
+        vm.startPrank(user);
+        uint256 proposalId = daoGovernor.propose(targets, values, calldatas, description);
+        vm.stopPrank();
+
+        // check the state of the proposal
+        uint256 state1 = uint256(daoGovernor.state(proposalId));
+        console.log("state1 (Pending)", state1);
+        assertEq(state1, uint256(IGovernor.ProposalState.Pending));
+
+        // try to cancel the proposal when it is pending
+        bytes32 descriptionHash = keccak256(abi.encodePacked(description));
+        vm.prank(user); // make sure the guy who is the proposer are doing this calcelling
+        daoGovernor.cancel(targets, values, calldatas, descriptionHash);
+
+        // check if the proposal is canceled and state is correct
+        uint256 state2 = uint256(daoGovernor.state(proposalId));
+        console.log("state2 (Canceled)", state2);
+        assertEq(state2, uint256(IGovernor.ProposalState.Canceled));
+
+        // try to cast vote but it should fail
+        vm.warp(block.timestamp + VOTING_DELAY + 1);
+        vm.roll(block.number + 1);
+        vm.expectRevert();
+        vm.prank(participant2);
+        daoGovernor.castVote(proposalId, 1);
     }
 }

@@ -93,9 +93,7 @@ The contract itself is pausable. The pauser role is the role that can pause and 
 
 #### Notes
 
-- The contract is upgradable.
-- The contract is pausable.
-- The contract is ERC20Permit compliant.
+- The contract is upgradable, pausable, and ERC20Permit compliant.
 
 ### `GovToken.sol`
 

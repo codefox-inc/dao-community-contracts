@@ -247,6 +247,7 @@ Preparation internal functions
 | src/ERC20UpgradeableTokenV1.sol | 100.00% (18/18) | 100.00% (19/19) | 100.00% (1/1)   | 100.00% (8/8)   |
 | src/GovToken.sol                | 100.00% (16/16) | 100.00% (20/20) | 100.00% (2/2)   | 100.00% (8/8)   |
 | src/VotingPowerExchange.sol     | 100.00% (53/53) | 100.00% (80/80) | 100.00% (10/10) | 100.00% (12/12) |
+| src/DaoGovernor.sol             | 100.00% (10/10) | 100.00% (19/19) | 100.00% (0/0)   | 100.00% (11/11) |
 
 # Reference
 
