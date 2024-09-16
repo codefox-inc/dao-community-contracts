@@ -85,10 +85,12 @@ contract DAOGovernorTest is Test {
         //////////////////////////////
 
         // deploy the timelock
-        timelock = new Timelock(MIN_DELAY, proposers, executors, admin); // empty array means anyone can propose and anyone can execute
+        timelock = new Timelock(MIN_DELAY, proposers, executors, admin); // empty array means the proposer and executor are not set yet
 
+        // deploy the dao governor
         daoGovernor = new DaoGovernor(govToken, timelock);
 
+        // grant the roles to the dao governor
         bytes32 proposerRole = timelock.PROPOSER_ROLE(); // keccak256("PROPOSER_ROLE")
         bytes32 executorRole = timelock.EXECUTOR_ROLE(); // keccak256("EXECUTOR_ROLE")
         bytes32 adminRole = timelock.DEFAULT_ADMIN_ROLE(); // keccak256("DEFAULT_ADMIN_ROLE")
@@ -98,8 +100,9 @@ contract DAOGovernorTest is Test {
         timelock.grantRole(proposerRole, address(daoGovernor));
         // anybody can execute
         timelock.grantRole(executorRole, address(0)); // anybody can execute the proposal, this should not be done in production
-        timelock.revokeRole(adminRole, admin); // user is the admin and we do not need a single pointo of failure
+        timelock.revokeRole(adminRole, admin); // admin is the admin and we do not need a single point of failure
 
+        // grant the minter role to the timelock to allow the timelock to mint the token
         govToken.grantRole(govToken.MINTER_ROLE(), address(timelock));
         vm.stopPrank();
     }
@@ -125,12 +128,12 @@ contract DAOGovernorTest is Test {
     function testGovernorCanGetProposedAndMintUtilityToken() public {
         address ourAddress = makeAddr("ourAddress");
         string memory description = "mint 1000e18 to our address";
-        bytes memory encodeFunctionData = abi.encodeWithSignature("mint(address,uint256)", ourAddress, 1000e18);
+        bytes memory encodeFunctionData = abi.encodeWithSignature("mint(address,uint256)", ourAddress, 1001e18);
         targets.push(address(govToken)); // this is the calling address
         values.push(0); // this means no value is sent to the target address
         calldatas.push(encodeFunctionData); // this is the data of the function call
 
-        // check the balance and the voting power of the participant2
+        // check the balance and the voting power of the user
         console.log(govToken.balanceOf(user));
         console.log(govToken.getVotes(user));
         // 1. propose to the dao
@@ -138,6 +141,7 @@ contract DAOGovernorTest is Test {
         vm.warp(block.timestamp + 15);
         vm.roll(block.number + 1);
 
+        // user has some voting power so he can propose
         vm.startPrank(user);
         uint256 proposalId = daoGovernor.propose(targets, values, calldatas, description);
         vm.stopPrank();
@@ -172,10 +176,11 @@ contract DAOGovernorTest is Test {
         // 5. execute
         vm.warp(block.timestamp + MIN_DELAY + 1);
         vm.roll(block.number + MIN_DELAY / 12 + 1);
+        // this is called but the actual execution is done by the timelock. that is why we need to grant the timelock the minter role to mint gov token.
         daoGovernor.execute(targets, values, calldatas, descriptionHash);
 
         console.log("token balance of our address: ", govToken.balanceOf(ourAddress));
-        assertEq(govToken.balanceOf(ourAddress), 1000e18);
+        assertEq(govToken.balanceOf(ourAddress), 1001e18);
 
         assertEq(uint256(daoGovernor.state(proposalId)), uint256(IGovernor.ProposalState.Executed));
     }

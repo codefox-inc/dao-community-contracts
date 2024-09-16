@@ -169,7 +169,72 @@ The function also updates the amount of the utility token that the holder has bu
 
 ### `MyGovernor.sol`
 
+This is the smart contract for the DAO governance of the community. The contract is based on the Governor contract of OpenZeppelin.
+
+This contract will be used in the Phase 2 of the community governance.
+
+#### Use cases and functions explanation
+
+- Basic governor functionality (proposal creation, voting, execution)
+- Configurable governance settings (voting delay, voting period, proposal threshold)
+- Integration with an ERC20Votes token for voting power
+- Quorum requirements based on a fraction of total supply
+- Timelock integration for delayed execution
+
+Key features and parameters:
+
+- Voting delay: 1 day (time between proposal creation and voting start)
+  - can be changed later
+- Voting period: 1 week (duration of the voting phase)
+  - can be changed later
+- Proposal threshold: 1e18 tokens (minimum tokens required to create a proposal)
+  - can be changed later
+- Quorum: 1% of total token supply (minimum participation for a valid vote)
+
+#### Notes
+
+- The contract is designed to work with a specific ERC20Votes token (likely the GovToken mentioned earlier) and a TimelockController.
+- Some parameters (voting delay, voting period, proposal threshold, quorum) are hardcoded in the constructor for the set up when the contract is deployed.
+- The contract uses OpenZeppelin's latest contracts (v5.0.0), ensuring up-to-date security features and best practices.
+- This contract is supposed to be used when the community governance is ready to be fully decentralized in the phase 2 of the community governance.
+
 ### `Timelock.sol`
+
+The `Timelock.sol` contract is a time-lock controller based on OpenZeppelin's `TimelockController`.
+
+This contract will be used in the Phase 2 of the community governance.
+
+#### Use cases and functions explanation
+
+Its main purposes and functionalities include:
+
+1. Delayed Execution: Provides a mandatory waiting period for passed proposals, enhancing governance security.
+2. Access Control: Manages which addresses can propose, execute, or cancel operations. If address(0) is set as the proposer or executor, then anyone can propose or execute.
+3. Transparency: All pending operations are publicly viewable, giving community members time to review and react.
+
+When the proposal is passed in the DaoGovernor, it will be queued in the timelock. After a predetermined delay, the actual execution is done by the timelock.
+
+#### Notes
+
+- The contract's admin role is set in the beginning and it is recommended to be revoked later.
+- We suppose the executor role can be set as address(0) in the beginning which means anyone can execute. And the proposer role is set as the governor contract in the beginning. It means the governor contract only has the right to propose.
+- Why we need to grant the timelock the minter role to mint gov token in the test case:
+  - When the proposal is passed, the queue operation will be called and the actual called function of timelock is `scheduledBatch()`. After that, the DaoGovernor's `execute()` function can be called by anyone to execute the proposal. And this function will call the timelock's `executeBatch()` function to execute the proposal. The real executor is the timelock.
+
+#### Governance flow
+
+As the code is written in the test case of using the governance to mint some gov token to user A, the flow of the governance is as follows:
+
+Preparation:
+
+- User A has some voting power.
+
+1. Prepare the values, targets, calldatas, and description of the proposal.
+2. After a while, User A creates the proposal: `daoGovernor.propose()`.
+3. Some users cast votes for the proposal: `daoGovernor.castVote()`.
+4. The proposal is queued in the timelock: `daoGovernor.queue()`.
+5. After the delay, anyone can call this function: `daoGovernor.execute()`.
+6. The token is minted to User A.
 
 ## About auditing
 
@@ -192,7 +257,7 @@ Any file except for the files in the above Scope.
 - Two step ownership transfer process is a known issue. We accept the risk of it.
 - The precision loss in the calculation of the voting power and the burned token is existing but the precision loss will not be a problem because the value loss caused by it is very small, e.g. 1e9 token. It is ignorable.
 
-### notes
+### Some notes
 
 - Because we are using a mathematical formula(mentioned in the _Reference_ section) which including square root calculation, some precision loss happens in the calculation. e.g. if we exchange 1e9 utility token for the governance token theoretically, what we get is zero token. Because of that, we made the value of the utility token to be 1e18 at least if someone wants to call the `exchange` function.
 - Maybe the tests, also fuzz tests, are not able to cover all the edge cases. if you find any issues, please let us know.
@@ -246,11 +311,6 @@ make coverage
 ```
 
 ## References
-
-### Documents
-
-- [Foundry Book](https://book.getfoundry.sh/)
-- [OpenZeppelin](https://docs.openzeppelin.com/)
 
 ### Mathematical Formula and tables
 
@@ -380,58 +440,7 @@ y: burnedToken
 
 ....
 
-### Used Framework's documentation
+### Documents
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+- [Foundry Book](https://book.getfoundry.sh/)
+- [OpenZeppelin](https://docs.openzeppelin.com/)
