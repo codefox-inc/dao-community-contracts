@@ -23,7 +23,7 @@ This repository consists of the following smart contracts:
 - GovToken.sol
   - The smart contract functioning as the governance token of the community.
   - The token is used to represent the voting power of the holder which is not transferable.
-  - The contract is based on the ERC20 contract of the OpenZeppelin.
+  - The contract is based on the ERC20Votes contract of the OpenZeppelin.
 - VotingPowerExchange.sol
   - The smart contract for the voting power exchange of the community.
   - The contract is used to get the governance token by burning the utility token the user holds.

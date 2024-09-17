@@ -408,94 +408,56 @@ contract VotingPowerExchangeUnitTest is Test {
         runTestCaseForIncrementedVotingPower(75215 * 1e18, 25 * 1e18, 98 * 1e18, 12);
     }
 
-    /// JavaScript code for reference
-    /**
-     * ```javascript
-     * const PRECISION = 1n * 10n**18n;
-     * const PRECISION_FIX = 1n * 10n**9n;
-     *
-     * function calculateVotingPowerFromBurnedAmount(amount) {
-     * // calculate 306.25 + 30*x
-     * const innerValue = 30625n * 10n**16n + 30n * BigInt(amount);
-     *
-     * // calculate 2*SQRT(306.25 + 30*x)
-     * // using a big number to keep precision
-     * const SQRT_PRECISION = 1e9;
-     * const sqrtPart = BigInt(Math.floor(2 * Math.sqrt(Number(innerValue)) * SQRT_PRECISION)) * PRECISION_FIX / BigInt(SQRT_PRECISION);
-     *
-     * // calculate (2*SQRT(306.25+30*x)-5)/30 - 1
-     * const result = (sqrtPart - 5n * PRECISION) / 30n - PRECISION;
-     *
-     * return result > 0n ? result : 0n;
-     * }
-     *
-     * function calculateIncrementedVotingPower(incrementedAmount, currentBurnedAmount) {
-     * const newTotal = calculateVotingPowerFromBurnedAmount(BigInt(incrementedAmount) + BigInt(currentBurnedAmount));
-     * const current = calculateVotingPowerFromBurnedAmount(BigInt(currentBurnedAmount));
-     * return newTotal - current;
-     * }
-     *
-     *   // test case from javascript
-     *   console.log(calculateIncrementedVotingPower(3350n * 10n**18n, 0n));
-     *   // 20000000000000000000n
-     *   console.log(calculateIncrementedVotingPower(1400n * 10n**18n, 1950n * 10n**18n));
-     *   // 5000000000000000000n
-     *   console.log(calculateIncrementedVotingPower(3040n * 10n**18n, 0n));
-     *   // 19000000000000000000n
-     *   console.log(calculateIncrementedVotingPower(3140n * 10n**18n, 0n));
-     *   // 19000000000000000000n
-     *   console.log(calculateIncrementedVotingPower(3140n * 10n**18n, 0n));
-     *   // 19327912562431395976n
-     *   console.log(calculateIncrementedVotingPower(925n * 10n**18n, 25n * 10n ** 18n));
-     *   // 9148269381662452394n
-     *
-     *     function sqrtBigInt(value) {
-     *    if (value < 0n) throw new Error("Cannot compute square root of negative number");
-     *    if (value === 0n) return 0n;
-     *
-     *    let x = value;
-     *    let y = (value / 2n) + 1n; // 初始猜测
-     *    while (y < x) {
-     *        x = y;
-     *        y = (value / y + y) / 2n; // 牛顿迭代
-     *    }
-     *    return x;
-     *    }
-     * ```
-     */
-    // function testCalculateIncrementedVotingPowerWithJavaScript() public view {
-    //     // test the function when the result is 20000000000000000000n in javascript
-    //     uint256 amount = 3350 * 1e18;
-    //     uint256 currentBurnedAmount = 0 * 1e18;
-    //     uint256 expectedIncrease = 20000000000000000000;
-    //     runTestCaseForIncrementedVotingPower(amount, currentBurnedAmount, expectedIncrease, 1);
+    ////// testing with JavaScript code //////
+    // javascript code for reference is in the readme file of test.
+    // ## JavaScript code for testing the activity in Web2
+    function testCalculateIncrementedVotingPowerForJs_0_3340() public view {
+        // test the function when the result is 19968480468933333333 in javascript
+        uint256 amount = 3340 * 1e18;
+        uint256 currentBurnedAmount = 0 * 1e18;
+        uint256 expectedIncrease = 19968480468933333333;
+        runTestCaseForIncrementedVotingPower(amount, currentBurnedAmount, expectedIncrease, 13);
+    }
 
-    //     // test the function when the result is 19000000000000000000n in javascript
-    //     amount = 3040 * 1e18;
-    //     currentBurnedAmount = 0 * 1e18;
-    //     expectedIncrease = 19000000000000000000;
-    //     runTestCaseForIncrementedVotingPower(amount, currentBurnedAmount, expectedIncrease, 2);
+    function testCalculateIncrementedVotingPowerForJs_30_3340() public view {
+        // test the function when the result is 18914158006533333334 in javascript
+        uint256 amount = 3340 * 1e18;
+        uint256 currentBurnedAmount = 30 * 1e18;
+        uint256 expectedIncrease = 18914158006533333334;
+        runTestCaseForIncrementedVotingPower(amount, currentBurnedAmount, expectedIncrease, 14);
+    }
 
-    //     // test the function when the result is 5000000000000000000n in javascript
-    //     amount = 1400 * 1e18;
-    //     currentBurnedAmount = 1950 * 1e18;
-    //     expectedIncrease = 5000000000000000000;
-    //     runTestCaseForIncrementedVotingPower(amount, currentBurnedAmount, expectedIncrease, 2);
-    // }
+    function testCalculateIncrementedVotingPowerForJs_50_19600() public view {
+        // test the function when the result is 48365896261533333334 in javascript
+        uint256 amount = 19600 * 1e18;
+        uint256 currentBurnedAmount = 50 * 1e18;
+        uint256 expectedIncrease = 48365896261533333334;
+        runTestCaseForIncrementedVotingPower(amount, currentBurnedAmount, expectedIncrease, 15);
+    }
 
-    // function testCalculateIncrementedVotingPowerWithJavaScript2() public view {
-    //     // test the function when the result is 19327912562431395976n in javascript
-    //     amount = 3140 * 1e18;
-    //     currentBurnedAmount = 0 * 1e18;
-    //     expectedIncrease = 19327912562431395976;
-    //     runTestCaseForIncrementedVotingPower(amount, currentBurnedAmount, expectedIncrease, 2);
+    function testCalculateIncrementedVotingPowerForJs_370_765() public view {
+        // test the function when the result is 5236956231600000000 in javascript
+        uint256 amount = 765 * 1e18;
+        uint256 currentBurnedAmount = 370 * 1e18;
+        uint256 expectedIncrease = 5236956231600000000;
+        runTestCaseForIncrementedVotingPower(amount, currentBurnedAmount, expectedIncrease, 16);
+    }
 
-    //     // test the function when the result is 9148269381662452394n in javascript
-    //     amount = 925 * 1e18;
-    //     currentBurnedAmount = 25 * 1e18;
-    //     expectedIncrease = 9148269381662452394;
-    //     runTestCaseForIncrementedVotingPower(amount, currentBurnedAmount, expectedIncrease, 2);
-    // }
+    function testCalculateIncrementedVotingPowerForJs_1000_15000() public view {
+        // test the function when the result is 34596960073333333334 in javascript
+        uint256 amount = 15000 * 1e18;
+        uint256 currentBurnedAmount = 1000 * 1e18;
+        uint256 expectedIncrease = 34596960073333333334;
+        runTestCaseForIncrementedVotingPower(amount, currentBurnedAmount, expectedIncrease, 17);
+    }
+
+    function testCalculateIncrementedVotingPowerForJs_4000_9260() public view {
+        // test the function when the result is 18940313422933333334 in javascript
+        uint256 amount = 9260 * 1e18;
+        uint256 currentBurnedAmount = 4000 * 1e18;
+        uint256 expectedIncrease = 18940313422933333334;
+        runTestCaseForIncrementedVotingPower(amount, currentBurnedAmount, expectedIncrease, 18);
+    }
 
     // Helper function to run individual test cases
     // Parameters:
@@ -786,6 +748,49 @@ contract VotingPowerExchangeUnitTest is Test {
         // Test case 12: Extreme large incremental increase
         // Increasing voting power by 98 from 1 should require burning 75215 tokens
         runTestCaseForIncrementedBurningAmount(98 * 1e18, 1 * 1e18, 75215 * 1e18, 12);
+    }
+
+    ////// testing with JavaScript code //////
+    // javascript code for reference is in the readme file of test.
+    // ## JavaScript code for testing the activity in Web2
+    function testCalculateIncrementedBurningAmountForJs_15_5() public view {
+        // test the function when the result is 1400 in javascript
+        uint256 amount = 5 * 1e18;
+        uint256 currentVotingPower = 15 * 1e18;
+        uint256 expectedBurnAmount = 1400 * 1e18;
+        runTestCaseForIncrementedBurningAmount(amount, currentVotingPower, expectedBurnAmount, 13);
+    }
+
+    function testCalculateIncrementedBurningAmountForJs_0_99e17() public view {
+        // test the function when the result is 908325000000000000000 in javascript
+        uint256 amount = 99 * 1e17;
+        uint256 currentVotingPower = 0 * 1e18;
+        uint256 expectedBurnAmount = 908325000000000000000;
+        runTestCaseForIncrementedBurningAmount(amount, currentVotingPower, expectedBurnAmount, 14);
+    }
+
+    function testCalculateIncrementedBurningAmountForJs_49_1() public view {
+        // test the function when the result is 760000000000000000000 in javascript
+        uint256 amount = 1 * 1e18;
+        uint256 currentVotingPower = 49 * 1e18;
+        uint256 expectedBurnAmount = 760000000000000000000;
+        runTestCaseForIncrementedBurningAmount(amount, currentVotingPower, expectedBurnAmount, 15);
+    }
+
+    function testCalculateIncrementedBurningAmountForJs_101e17_3022e16() public view {
+        // test the function when the result is 5520155000000000000000 in javascript
+        uint256 amount = 101 * 1e17;
+        uint256 currentVotingPower = 3022 * 1e16;
+        uint256 expectedBurnAmount = 5520155000000000000000;
+        runTestCaseForIncrementedBurningAmount(amount, currentVotingPower, expectedBurnAmount, 16);
+    }
+
+    function testCalculateIncrementedBurningAmountForJs_151e17_2522e16() public view {
+        // test the function when the result is 7686655000000000000000 in javascript
+        uint256 amount = 151 * 1e17;
+        uint256 currentVotingPower = 2522 * 1e16;
+        uint256 expectedBurnAmount = 7686655000000000000000;
+        runTestCaseForIncrementedBurningAmount(amount, currentVotingPower, expectedBurnAmount, 17);
     }
 
     // Helper function to run individual test cases
