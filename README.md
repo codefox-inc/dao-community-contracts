@@ -268,7 +268,7 @@ Any file except for the files in the above Scope.
 
 ### Some notes
 
-- Because we are using a mathematical formula(mentioned in the _Reference_ section) which including square root calculation, some precision loss happens in the calculation. e.g. if we exchange 1e9 utility token for the governance token theoretically, what we get is zero token. Because of that, we made the value of the utility token to be 1e18 at least if someone wants to call the `exchange` function.
+- Because we are using a mathematical formula(mentioned in the _Reference_ section) which including square root calculation, some precision loss happens in the calculation. e.g. if we exchange 1e9 utility token for the governance token theoretically, what we get is zero token. And a user can spam the requests to make the system cost gas fee for no reason. In light of this, we made the value of the utility token to be 1e18 at least if someone wants to call the `exchange` function.
 - Maybe the tests, also fuzz tests, are not able to cover all the edge cases. if you find any issues, please let us know.
 
 ## Tests
