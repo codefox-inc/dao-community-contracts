@@ -116,8 +116,17 @@ There are 2 phases when we want to utilize this token in the protocol. After kic
 
 - Phase 1:
   We use the token to represent the voting power of the holder. And manage governance off-chain using the token balance of the governance participants.
+
+<div style="text-align: center;">
+  <img src="./images/phaseOneImage.png" alt="Phase 1" width="80%"/>
+</div>
+
 - Phase 2:
-  We use the token to represent the level of the holder. And manage governance on-chain using the token balance of the governance participants.
+  We use the token to represent the voting power, i.e. level, of the holder. And manage governance on-chain using the token balance of the governance participants.
+
+<div style="text-align: center;">
+  <img src="./images/phaseTwoImage.png" alt="Phase 2" width="80%"/>
+</div>
 
 The GovToken is in a sense an achievement recorder. We want to make sure the achievement system is transparent and verifiable for all participants. That is why we did not make this token upgradable.
 
