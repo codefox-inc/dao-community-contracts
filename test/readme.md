@@ -71,6 +71,7 @@ This is the utility token contract.
 ### VotingPowerExchange.t.sol
 
 - setUp
+- testConstructorValidation
 - testSpecialCasesForCalculateVotingPowerFromBurnedAmount
 - testSomeMoreSpecialCasesForCalculateVotingPowerFromBurnedAmount
 - testCalculateVotingPowerFromBurnedAmount
@@ -78,8 +79,34 @@ This is the utility token contract.
 - testCalculationOfVotingPowerMintingWhenMintedSeparately
 - testCalculationOfVotingPowerMintingWhenMintedSeparately2
 - testCalculateIncrementedVotingPower
+
+testing with JavaScript code
+
+- testCalculateIncrementedVotingPowerForJs_0_3340
+- testCalculateIncrementedVotingPowerForJs_30_3340
+- testCalculateIncrementedVotingPowerForJs_50_19600
+- testCalculateIncrementedVotingPowerForJs_370_765
+- testCalculateIncrementedVotingPowerForJs_1000_15000
+- testCalculateIncrementedVotingPowerForJs_4000_9260
+
+helper internal functions
+
+- runTestCaseForIncrementedVotingPower
+
 - testCalculateBurningAmountFromVotingPower
 - testCalculateIncrementedBurningAmount
+
+testing with JavaScript code
+
+- testCalculateIncrementedBurningAmountForJs_15_5
+- testCalculateIncrementedBurningAmountForJs_0_99e17
+- testCalculateIncrementedBurningAmountForJs_49_1
+- testCalculateIncrementedBurningAmountForJs_101e17_3022e16
+- testCalculateIncrementedBurningAmountForJs_151e17_2522e16
+
+helper internal functions
+
+- runTestCaseForIncrementedBurningAmount
 
 ### GovToken.t.sol
 
