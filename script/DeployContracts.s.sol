@@ -146,7 +146,6 @@ contract DeployContracts is Script {
         });
     }
 
-
     // deploy the contracts on the base sepolia network for testing
     function deploymentsOnBaseSepilia() public returns (DeploymentResult memory) {
         admin = vm.addr(vm.envUint("PRIVATE_KEY_ADMIN"));

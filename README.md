@@ -455,3 +455,13 @@ y: burnedToken
 
 - [Foundry Book](https://book.getfoundry.sh/)
 - [OpenZeppelin](https://docs.openzeppelin.com/)
+
+## Some notes for Dev
+
+1. All contracts must be deployed. After that we can connect it from the web2 side.
+   1. What Phase 1 looks like is as the image below.
+2. The main function which needs to be called by relayer on behalf of the user is the `exchange()` function.
+   1. In order to call it, the user needs to generate its own signature by signing with his private keys.
+   2. The trusted relayer will then call the function with the signed message. Gas fee will be paid by the relayer instead of the user.
+3. Some of the data is stored in the contract in nature. But the dev can decide if they want to store the data also in DB or not.
+4. Some accounts with special roles are initialized in the contract in the beginning. Needless to say, the roles are supposed to be handled very carefully.
