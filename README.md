@@ -1,6 +1,6 @@
 # Smart Contracts for DAO community
 
-This is a repository for the smart contracts of the DAO community. The smart contracts are written in Solidity and tested using the Foundry testing framework.
+This is a repository for the smart contracts of the DAO community. The smart contracts are written in Solidity and developed and tested using the Foundry framework.
 
 ## Introduction
 
