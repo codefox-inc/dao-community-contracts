@@ -464,4 +464,8 @@ y: burnedToken
    1. In order to call it, the user needs to generate its own signature by signing with his private keys.
    2. The trusted relayer will then call the function with the signed message. Gas fee will be paid by the relayer instead of the user.
 3. Some of the data is stored in the contract in nature. But the dev can decide if they want to store the data also in DB or not.
-4. Some accounts with special roles are initialized in the contract in the beginning. Needless to say, the roles are supposed to be handled very carefully.
+4. Some accounts with special roles are initialized in the contract in the beginning. Needless to say, the accounts with special roles are supposed to be handled very carefully.
+
+<div style="text-align: center;">
+  <img src="./images/phaseOneImage.png" alt="フェーズ1" width="80%"/>
+</div>
