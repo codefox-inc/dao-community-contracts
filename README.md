@@ -11,30 +11,30 @@ All the contracts are sitting in the `src/` folder. These are the core contracts
 
 This repository consists of the following smart contracts:
 
-- AmbassadorNft.sol
+- `AmbassadorNft`
   - The smart contract for the NFT that represents the membership of the community.
   - This smart contract is independent from the other smart contracts.
   - The contract is based on the ERC1155 contract of the OpenZeppelin.
-- ERC20UpgradeableTokenV1.sol
+- `ERC20UpgradeableTokenV1`
   - The smart contract for the ERC20 token that is used to represent the utility token of the community.
   - Its use case is to be exchanged for the governance token of the community.
   - Other use cases are possible and it is remained to be defined by the community.
   - The contract is based on the ERC20Upgradeable contract of the OpenZeppelin.
-- GovToken.sol
+- `GovToken`
   - The smart contract functioning as the governance token of the community.
   - The token is used to represent the voting power of the holder which is not transferable.
   - The contract is based on the ERC20Votes contract of the OpenZeppelin.
-- VotingPowerExchange.sol
+- `VotingPowerExchange`
   - The smart contract for the voting power exchange of the community.
   - The contract is used to get the governance token by burning the utility token the user holds.
   - This contract is created from scratch.
-- MyGovernor.sol
+- `DaoGovernor`
   - The smart contract for the DAO governance of the community.
   - The contract is used to manage the proposal of the community in a more decentralized manner.
   - The contract is based on the Governor contract of the OpenZeppelin.
-- Timelock.sol
+- `Timelock`
   - The smart contract for the timelock of the community.
-  - This contract will become the owner of the MyGovernor contract.
+  - This contract will become the owner of the DaoGovernor contract.
 
 ## Roles
 
@@ -68,6 +68,8 @@ The system is managed by different roles. The roles are managed by the default a
 ### `AmbassadorNft.sol`
 
 This is the smart contract for the NFT that represents the membership of the community. I will give some explanation for the possible use cases and the functions of the NFT.
+
+This contract is independent from other smart contracts in the current system.
 
 #### Possible use cases and functions explanation
 
@@ -176,7 +178,7 @@ The function also updates the amount of the utility token that the holder has bu
 - There are some variables which are used to for the precision of the calculation.
 - `SafeERC20` is not used because the token contract we are using is known to be safe.
 
-### `MyGovernor.sol`
+### `DaoGovernor.sol`
 
 This is the smart contract for the DAO governance of the community. The contract is based on the Governor contract of OpenZeppelin.
 
@@ -254,7 +256,7 @@ Preparation:
   - ERC20UpgradeableTokenV1.sol
   - GovToken.sol
   - VotingPowerExchange.sol
-  - MyGovernor.sol
+  - DaoGovernor.sol
   - Timelock.sol
 
 ### Out of Scope
