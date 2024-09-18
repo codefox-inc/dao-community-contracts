@@ -145,4 +145,64 @@ contract DeployContracts is Script {
             participant: DEFAULT_ANVIL_KEY2
         });
     }
+
+
+    // deploy the contracts on the base sepolia network for testing
+    function deploymentsOnBaseSepilia() public returns (DeploymentResult memory) {
+        admin = vm.addr(vm.envUint("PRIVATE_KEY_ADMIN"));
+        pauser = vm.addr(vm.envUint("PRIVATE_KEY_ADMIN"));
+        minter = makeAddr("minter");
+        burner = makeAddr("burner");
+        manager = makeAddr("manager");
+        exchanger = makeAddr("exchanger");
+
+        // deploy the utility token using the OpenZeppelin Upgrades library
+        // address proxy = Upgrades.deployUUPSProxy(
+        //     "ERC20UpgradeableTokenV1.sol",
+        //     abi.encodeCall(
+        //         ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", admin, pauser, minter, burner, admin)
+        //     )
+        // );
+
+        /// This is using the UnsafeUpgrades method to deploy the UUPS in test environment not in production. This can be run to get the test coverage.
+        address implementation = address(new ERC20UpgradeableTokenV1());
+        address proxy = UnsafeUpgrades.deployUUPSProxy(
+            implementation,
+            abi.encodeCall(
+                ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", admin, pauser, minter, burner, admin)
+            )
+        );
+
+        utilityToken = ERC20UpgradeableTokenV1(proxy);
+
+        // deploy the gov token
+        govToken = new GovToken("Governance Token", "GOV", admin, minter, burner, exchanger);
+
+        // deploy the voting power exchange
+        votingPowerExchange =
+            new VotingPowerExchange(address(govToken), address(utilityToken), admin, manager, exchanger);
+
+        vm.startPrank(admin);
+        // give exchange the minter role of govToken
+        govToken.grantRole(govToken.MINTER_ROLE(), address(votingPowerExchange));
+        // give exchange the burner role of utilityToken
+        utilityToken.grantRole(utilityToken.BURNER_ROLE(), address(votingPowerExchange));
+        // give exchange the voting power exchange role of govToken
+        govToken.grantRole(govToken.VOTING_POWER_EXCHANGE_ROLE(), address(votingPowerExchange));
+        vm.stopPrank();
+
+        return DeploymentResult({
+            utilityToken: address(utilityToken),
+            govToken: address(govToken),
+            exchange: address(votingPowerExchange),
+            admin: admin,
+            pauser: pauser,
+            minter: minter,
+            burner: burner,
+            manager: manager,
+            exchanger: exchanger,
+            deployerKey: DEFAULT_ANVIL_KEY,
+            participant: DEFAULT_ANVIL_KEY2
+        });
+    }
 }
