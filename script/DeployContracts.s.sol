@@ -56,7 +56,6 @@ contract DeployContracts is Script {
             console.log("Deploying contracts on the base testnet");
 
             result = deploymentsOnBaseSepolia();
-
         } else if (block.chainid == 8453) {
             console.log("Deploying contracts on the base mainnet");
 
@@ -184,7 +183,7 @@ contract DeployContracts is Script {
         // give defender the exchanger role
         votingPowerExchange.grantRole(votingPowerExchange.EXCHANGER_ROLE(), defender);
         vm.stopBroadcast();
-        
+
         return DeploymentResult({
             utilityToken: address(utilityToken),
             govToken: address(govToken),
@@ -196,7 +195,7 @@ contract DeployContracts is Script {
             manager: manager,
             exchanger: exchanger,
             deployerKey: uint256(0), // this is for outputing the type
-            participant: uint256(0)  // this is for outputing the type
+            participant: uint256(0) // this is for outputing the type
         });
     }
 }
