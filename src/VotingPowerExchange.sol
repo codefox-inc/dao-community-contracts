@@ -5,7 +5,6 @@ pragma solidity 0.8.24;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-
 import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -76,7 +75,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(MANAGER_ROLE, manager);
         _grantRole(EXCHANGER_ROLE, exchanger);
-        _setVotingPowerCap(99 * 1e18);
+        _setVotingPowerCap(49 * 1e18);
     }
 
     ////////////////////////////////////////////

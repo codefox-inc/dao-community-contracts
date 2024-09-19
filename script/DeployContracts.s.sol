@@ -43,6 +43,8 @@ contract DeployContracts is Script {
     address public burner;
     address public manager;
     address public exchanger;
+    address public upgrader;
+    address public defender;
     address public constant ZERO_ADDRESS = address(0);
 
     function run() public returns (DeploymentResult memory) {
@@ -53,19 +55,8 @@ contract DeployContracts is Script {
         } else if (block.chainid == 84532) {
             console.log("Deploying contracts on the base testnet");
 
-            result = DeploymentResult({
-                utilityToken: ZERO_ADDRESS,
-                govToken: ZERO_ADDRESS,
-                exchange: ZERO_ADDRESS,
-                admin: vm.addr(vm.envUint("PRIVATE_KEY")),
-                pauser: ZERO_ADDRESS,
-                minter: ZERO_ADDRESS,
-                burner: ZERO_ADDRESS,
-                manager: ZERO_ADDRESS,
-                exchanger: ZERO_ADDRESS,
-                deployerKey: vm.envUint("PRIVATE_KEY"),
-                participant: 0
-            });
+            result = deploymentsOnBaseSepolia();
+
         } else if (block.chainid == 8453) {
             console.log("Deploying contracts on the base mainnet");
 
@@ -95,6 +86,7 @@ contract DeployContracts is Script {
         burner = makeAddr("burner");
         manager = makeAddr("manager");
         exchanger = makeAddr("exchanger");
+        upgrader = makeAddr("admin");
 
         // deploy the utility token using the OpenZeppelin Upgrades library
         // address proxy = Upgrades.deployUUPSProxy(
@@ -109,7 +101,7 @@ contract DeployContracts is Script {
         address proxy = UnsafeUpgrades.deployUUPSProxy(
             implementation,
             abi.encodeCall(
-                ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", admin, pauser, minter, burner, admin)
+                ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", admin, pauser, minter, burner, upgrader)
             )
         );
 
@@ -147,28 +139,25 @@ contract DeployContracts is Script {
     }
 
     // deploy the contracts on the base sepolia network for testing
-    function deploymentsOnBaseSepilia() public returns (DeploymentResult memory) {
-        admin = vm.addr(vm.envUint("PRIVATE_KEY_ADMIN"));
-        pauser = vm.addr(vm.envUint("PRIVATE_KEY_ADMIN"));
-        minter = makeAddr("minter");
-        burner = makeAddr("burner");
-        manager = makeAddr("manager");
-        exchanger = makeAddr("exchanger");
+    function deploymentsOnBaseSepolia() public returns (DeploymentResult memory) {
+        address deployer = vm.addr(vm.envUint("PRIVATE_KEY_DEPLOYER"));
+        uint256 privateKey = vm.envUint("PRIVATE_KEY_DEPLOYER");
+        // testnet we set all of the roles as deployer
+        admin = deployer;
+        pauser = deployer;
+        minter = deployer;
+        burner = deployer;
+        manager = deployer;
+        exchanger = deployer;
+        upgrader = deployer;
+        defender = vm.envAddress("OPENZEPPELIN_DEFENDER_ADDR");
 
+        vm.startBroadcast(privateKey);
         // deploy the utility token using the OpenZeppelin Upgrades library
-        // address proxy = Upgrades.deployUUPSProxy(
-        //     "ERC20UpgradeableTokenV1.sol",
-        //     abi.encodeCall(
-        //         ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", admin, pauser, minter, burner, admin)
-        //     )
-        // );
-
-        /// This is using the UnsafeUpgrades method to deploy the UUPS in test environment not in production. This can be run to get the test coverage.
-        address implementation = address(new ERC20UpgradeableTokenV1());
-        address proxy = UnsafeUpgrades.deployUUPSProxy(
-            implementation,
+        address proxy = Upgrades.deployUUPSProxy(
+            "ERC20UpgradeableTokenV1.sol",
             abi.encodeCall(
-                ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", admin, pauser, minter, burner, admin)
+                ERC20UpgradeableTokenV1.initialize, ("AMA coin", "AMA", admin, pauser, minter, burner, upgrader)
             )
         );
 
@@ -181,15 +170,21 @@ contract DeployContracts is Script {
         votingPowerExchange =
             new VotingPowerExchange(address(govToken), address(utilityToken), admin, manager, exchanger);
 
-        vm.startPrank(admin);
         // give exchange the minter role of govToken
         govToken.grantRole(govToken.MINTER_ROLE(), address(votingPowerExchange));
         // give exchange the burner role of utilityToken
         utilityToken.grantRole(utilityToken.BURNER_ROLE(), address(votingPowerExchange));
         // give exchange the voting power exchange role of govToken
         govToken.grantRole(govToken.VOTING_POWER_EXCHANGE_ROLE(), address(votingPowerExchange));
-        vm.stopPrank();
 
+        // give exchange the minter role of govToken
+        govToken.grantRole(govToken.MINTER_ROLE(), address(votingPowerExchange));
+        // give exchange the burner role of utilityToken
+        utilityToken.grantRole(utilityToken.BURNER_ROLE(), address(votingPowerExchange));
+        // give defender the exchanger role
+        votingPowerExchange.grantRole(votingPowerExchange.EXCHANGER_ROLE(), defender);
+        vm.stopBroadcast();
+        
         return DeploymentResult({
             utilityToken: address(utilityToken),
             govToken: address(govToken),
@@ -200,8 +195,8 @@ contract DeployContracts is Script {
             burner: burner,
             manager: manager,
             exchanger: exchanger,
-            deployerKey: DEFAULT_ANVIL_KEY,
-            participant: DEFAULT_ANVIL_KEY2
+            deployerKey: uint256(0), // this is for outputing the type
+            participant: uint256(0)  // this is for outputing the type
         });
     }
 }

@@ -22,3 +22,22 @@ snapshot :; forge snapshot
 format :; forge fmt
 
 coverage :; forge coverage
+
+coverage-report :; forge coverage --report debug > coverage-report.txt
+
+NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast
+
+ifeq ($(findstring --network sepolia,$(ARGS)),--network sepolia)
+	NETWORK_ARGS := --rpc-url $(SEPOLIA_RPC_URL) --private-key $(PRIVATE_KEY_DEPLOYER) --broadcast --verify --etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
+endif
+
+ifeq ($(findstring --network basesepolia,$(ARGS)),--network basesepolia)
+	NETWORK_ARGS := --rpc-url $(BASE_SEPOLIA_RPC_URL) --private-key $(PRIVATE_KEY_DEPLOYER) --broadcast --verify --etherscan-api-key $(BASE_API_KEY) -vvvv
+endif
+
+ifeq ($(findstring --network basemainnet,$(ARGS)),--network basemainnet)
+	NETWORK_ARGS := --rpc-url $(BASE_MAINNET_RPC_URL) --private-key $(PRIVATE_KEY_DEPLOYER) --broadcast --verify --etherscan-api-key $(BASE_API_KEY) -vvvv
+endif
+
+deploy:
+	@forge clean && forge script script/DeployContracts.s.sol:DeployContracts $(NETWORK_ARGS)
