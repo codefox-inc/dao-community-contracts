@@ -68,6 +68,10 @@ contract VotingPowerExchangeTest is Test {
 
         helper = new VotingPowerExchangeTestHelper();
 
+        // set the voting power cap to 99e18
+        vm.prank(manager);
+        votingPowerExchange.setVotingPowerCap(99e18);
+
         // other setup
         vm.label(participant, "participant");
         vm.label(participant2, "participant2");
@@ -208,7 +212,7 @@ contract VotingPowerExchangeTest is Test {
         VotingPowerExchange vpe =
             new VotingPowerExchange(address(utilityToken), address(govToken), admin, manager, exchanger);
         assertTrue(address(vpe) != address(0));
-        assertEq(vpe.getVotingPowerCap(), 99 * 1e18);
+        assertEq(vpe.getVotingPowerCap(), 49 * 1e18);
     }
 
     function testBasicVotingPowerExchangeInfo() public view {

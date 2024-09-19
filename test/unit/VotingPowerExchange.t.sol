@@ -7,11 +7,15 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract VotingPowerExchangeUnitTest is Test {
     VotingPowerExchange public votingPowerExchange;
+    address public manager = makeAddr("manager");
 
     function setUp() public {
         // We need to deploy VotingPowerExchange
         votingPowerExchange =
             new VotingPowerExchange(address(this), address(this), address(this), address(this), address(this));
+        // set the cap to 99e18
+        vm.prank(address(this));
+        votingPowerExchange.setVotingPowerCap(99e18);
     }
 
     function testConstructorValidation() public {

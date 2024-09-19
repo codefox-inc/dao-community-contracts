@@ -66,6 +66,10 @@ contract VotingPwoerExchangeTest is Test {
         utilityToken.mint(participant2, 10_000 * 1e18);
         vm.stopPrank();
 
+        // set the voting power cap to 99e18
+        vm.prank(manager);
+        votingPowerExchange.setVotingPowerCap(99e18);
+
         // set up the roles for exchange contract
 
         helper = new VotingPowerExchangeTestHelper();
