@@ -15,15 +15,15 @@ update:; forge update
 
 build:; forge build
 
-test :; forge test
+test :; forge test --no-match-path "test/onChain/*.sol"
 
 snapshot :; forge snapshot
 
 format :; forge fmt
 
-coverage :; forge coverage
+coverage :; forge coverage --no-match-path "test/onChain/*.sol"
 
-coverage-report :; forge coverage --report debug > coverage-report.txt
+coverage-report :; forge coverage --report debug > coverage-report.txt --no-match-path "test/onChain/*.sol"
 
 NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast
 
