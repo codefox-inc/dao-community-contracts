@@ -46,6 +46,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     uint256 private constant PRECISION_FIX = 1e9;
     uint256 private constant PRECISION_FACTOR = 10;
     uint256 private constant PRECISION = 1e18;
+    uint256 private constant ALLOWED_EXCHANGING_MINIMUM_AMOUNT = 1e18;
 
     // token instances
     IGovToken private immutable govToken;
@@ -99,7 +100,7 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         onlyRole(EXCHANGER_ROLE)
     {
         if (sender == address(0)) revert VotingPowerExchange__AddressIsZero();
-        if (amount < 1e18) revert VotingPowerExchange__AmountIsTooSmall(); // not allow to exchange less than 1 utility token
+        if (amount < ALLOWED_EXCHANGING_MINIMUM_AMOUNT) revert VotingPowerExchange__AmountIsTooSmall(); // not allow to exchange less than 1 utility token
         if (authorizationState(sender, nonce)) revert VotingPowerExchange__InvalidNonce();
         if (block.timestamp > expiration) revert VotingPowerExchange__SignatureExpired();
         // check the current gove token balance of the sender
@@ -254,12 +255,19 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     function getConstants()
         external
         pure
-        returns (bytes32 __EXCHANGE_TYPEHASH, uint256 _PRECISION_FIX, uint256 _PRECISION_FACTOR, uint256 _PRECISION)
+        returns (
+            bytes32 __EXCHANGE_TYPEHASH,
+            uint256 _PRECISION_FIX,
+            uint256 _PRECISION_FACTOR,
+            uint256 _PRECISION,
+            uint256 _ALLOWED_EXCHANGING_MINIMUM_AMOUNT
+        )
     {
         __EXCHANGE_TYPEHASH = _EXCHANGE_TYPEHASH;
         _PRECISION_FIX = PRECISION_FIX;
         _PRECISION_FACTOR = PRECISION_FACTOR;
         _PRECISION = PRECISION;
+        _ALLOWED_EXCHANGING_MINIMUM_AMOUNT = ALLOWED_EXCHANGING_MINIMUM_AMOUNT;
     }
 
     /**

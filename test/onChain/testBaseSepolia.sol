@@ -18,6 +18,10 @@ contract TestBaseSepolia is Test {
     }
 
     function testExchangeOnChain01() public {
+        if (block.chainid != 84532) {
+            console.log("Not on Base Sepolia");
+            return;
+        }
         // Set up the state required for the test (if needed)
         // For example, simulate a user address
         uint256 balanceBefore = utilityToken.balanceOf(0x588A7E62547CB573084C8608486d60E567c573d0);

@@ -8,7 +8,7 @@ import "src/ERC20UpgradeableTokenV1.sol";
 contract ERC20UpgradeableTokenV2 is ERC20UpgradeableTokenV1 {
     bytes32 public constant TREASURY_ROLE = keccak256("TREASURY_ROLE");
 
-    address private _treasury;
+    address private _treasury; // dummy state variable for testing
 
     /// @dev Initializes the V2 version of the contract.
     function initializeV2(address treasury, address newAdmin) public reinitializer(2) {

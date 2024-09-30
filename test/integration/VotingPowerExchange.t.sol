@@ -222,8 +222,13 @@ contract VotingPowerExchangeTest is Test {
     }
 
     function testConstantValues() public view {
-        (bytes32 __EXCHANGE_TYPEHASH, uint256 _PRICISION_FIX, uint256 _PRICISION_FACTOR, uint256 _PRICISION) =
-            votingPowerExchange.getConstants();
+        (
+            bytes32 __EXCHANGE_TYPEHASH,
+            uint256 _PRICISION_FIX,
+            uint256 _PRICISION_FACTOR,
+            uint256 _PRICISION,
+            uint256 _ALLOWED_EXCHANGING_MINIMUM_AMOUNT
+        ) = votingPowerExchange.getConstants();
 
         assertEq(
             __EXCHANGE_TYPEHASH, keccak256("Exchange(address sender,uint256 amount,bytes32 nonce,uint256 expiration)")
@@ -231,6 +236,7 @@ contract VotingPowerExchangeTest is Test {
         assertEq(_PRICISION, 1e18);
         assertEq(_PRICISION_FACTOR, 10);
         assertEq(_PRICISION_FIX, 1e9);
+        assertEq(_ALLOWED_EXCHANGING_MINIMUM_AMOUNT, 1e18);
     }
 
     function testVotingPowerCap() public view {
