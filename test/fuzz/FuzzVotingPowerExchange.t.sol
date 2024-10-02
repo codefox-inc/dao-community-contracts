@@ -67,6 +67,9 @@ contract VotingPwoerExchangeTest is Test {
         utilityToken.mint(exchanger, 10_000 * 1e18);
         vm.stopPrank();
 
+        vm.prank(exchanger);
+        utilityToken.approve(address(votingPowerExchange), 75240 * 1e18);
+
         // set the voting power cap to 99e18
         vm.prank(manager);
         votingPowerExchange.setVotingPowerCap(99e18);
@@ -120,9 +123,10 @@ contract VotingPwoerExchangeTest is Test {
     }
 
     function testExchangeWithAnyAmountWhichIsInRangeWillSucceed(uint256 amount) public {
-        // mint 75240 utility token to the participant2
+
+        // mint 75240 utility token to the exchanger
         vm.startPrank(minter);
-        utilityToken.mint(participant2, 75240 * 1e18);
+        utilityToken.mint(exchanger, 75240 * 1e18);
         vm.stopPrank();
         // start testing
         amount = bound(amount, 1e18, 75240 * 1e18);
@@ -135,19 +139,22 @@ contract VotingPwoerExchangeTest is Test {
         votingPowerExchange.exchange(participant2, amount, nonce, expiration, signature);
         vm.stopPrank();
         // check the balance of the participant2
-        assertEq(utilityToken.balanceOf(participant2), 85240 * 1e18 - amount); // he got 10000 token in advance
+        assertEq(utilityToken.balanceOf(exchanger), 85240 * 1e18 - amount); // he got 10000 token in advance
         uint256 exchangedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(amount, 0);
         // check the balance of the govToken
         assertEq(govToken.balanceOf(participant2), exchangedVotingPower);
     }
 
     function testExchangeWithAnyAmountWithinNewCapWillSucceed(uint256 amount) public {
-        // mint 75240 utility token to the participant2
+        // mint 75240 utility token to the exchanger
         vm.startPrank(minter);
-        utilityToken.mint(participant2, 92675 * 1e18);
+        utilityToken.mint(exchanger, 92675 * 1e18);
+        vm.stopPrank();
+        vm.startPrank(exchanger);
+        utilityToken.approve(address(votingPowerExchange), 92675 * 1e18);
         vm.stopPrank();
 
-        // set the cap to 49e18
+        // set the cap to 110e18
         vm.prank(manager);
         votingPowerExchange.setVotingPowerCap(110e18);
         vm.stopPrank();
@@ -162,7 +169,7 @@ contract VotingPwoerExchangeTest is Test {
         votingPowerExchange.exchange(participant2, amount, nonce, expiration, signature);
         vm.stopPrank();
         // check the balance of the participant2
-        assertEq(utilityToken.balanceOf(participant2), 102675 * 1e18 - amount); // he got 10000 token in advance
+        assertEq(utilityToken.balanceOf(exchanger), 102675 * 1e18 - amount); // he got 10000 token in advance
         uint256 exchangedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(amount, 0);
         // check the balance of the govToken
         assertEq(govToken.balanceOf(participant2), exchangedVotingPower);
@@ -228,7 +235,7 @@ contract VotingPwoerExchangeTest is Test {
         vm.stopPrank();
 
         // check the balance of the participant2
-        assertEq(utilityToken.balanceOf(participant2), 10_000 * 1e18 - 1_100 * 1e18); // he got 10000 token in advance
+        assertEq(utilityToken.balanceOf(exchanger), 10_000 * 1e18 - 1_100 * 1e18); // he got 10000 token in advance
         uint256 exchangedVotingPower = votingPowerExchange.calculateIncrementedVotingPower(1_100 * 1e18, 0);
         // check the balance of the govToken
         assertEq(govToken.balanceOf(participant2), exchangedVotingPower);

@@ -62,7 +62,11 @@ contract VotingPowerExchangeTest is Test {
         utilityToken.mint(user, 1_000 * 1e18);
         utilityToken.mint(participant, 100_000 * 1e18);
         utilityToken.mint(participant2, 10_000 * 1e18);
+        utilityToken.mint(exchanger, 10_000 * 1e18);
         vm.stopPrank();
+
+        vm.prank(exchanger);
+        utilityToken.approve(address(votingPowerExchange), 10_000 * 1e18);
 
         // set up the roles for exchange contract
 
@@ -77,6 +81,9 @@ contract VotingPowerExchangeTest is Test {
         vm.label(participant2, "participant2");
         vm.label(user, "user");
         vm.label(user2, "user2");
+        vm.label(address(votingPowerExchange), "votingPowerExchange");
+        vm.label(address(utilityToken), "utilityToken");
+        vm.label(address(govToken), "govToken");
     }
 
     ////////////////////////////
@@ -132,7 +139,7 @@ contract VotingPowerExchangeTest is Test {
         assertEq(utilityToken.name(), "AMA coin");
         assertEq(utilityToken.symbol(), "AMA");
         assertEq(utilityToken.decimals(), 18);
-        assertEq(utilityToken.totalSupply(), 111_000 * 1e18);
+        assertEq(utilityToken.totalSupply(), 121_000 * 1e18);
     }
 
     function testGovTokenBasicInfo() public view {
@@ -469,6 +476,7 @@ contract VotingPowerExchangeTest is Test {
         vm.expectEmit();
         emit VotingPowerExchange.VotingPowerReceived(participant2, 9800 * 1e18, 35 * 1e18);
         votingPowerExchange.exchange(participant2, 9800 * 1e18, nonce, expirationTime, signature);
+        vm.stopPrank();
 
         // Check the result of the humongous token exchange:
         // Participant2 receives 35 governance tokens, has 200 utility tokens remaining,
@@ -479,17 +487,21 @@ contract VotingPowerExchangeTest is Test {
         );
     }
 
-    function testExchangeVotingPowerCapSuccessCase() public {
+    function testExchangeReachingVotingPowerCapSuccessCase() public {
         vm.prank(minter);
-        // user has already got 10_000 utility token
-        utilityToken.mint(participant2, 65_300 * 1e18);
+        // exchanger has already got 10_000 utility token
+        utilityToken.mint(exchanger, 65_300 * 1e18);
+        // approve 
+        vm.startPrank(exchanger);
+        utilityToken.approve(address(votingPowerExchange), 75_300 * 1e18);
+
         bytes32 nonce = bytes32(0);
         uint256 expirationTime = 3600;
         (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
             dc.DEFAULT_ANVIL_KEY2(), 75_240 * 1e18, nonce, expirationTime, address(votingPowerExchange)
         );
-        vm.startPrank(exchanger);
-        // when you exchange 1_100 utility token, you will get 11 voting power
+
+        // when you exchange 75_240 utility token, you will get 99 voting power
         vm.expectEmit();
         emit VotingPowerExchange.VotingPowerReceived(participant2, 75_240 * 1e18, 99 * 1e18);
         votingPowerExchange.exchange(participant2, 75_240 * 1e18, nonce, expirationTime, signature);
@@ -504,8 +516,11 @@ contract VotingPowerExchangeTest is Test {
 
     function testExchangeTwiceToGetToVotingPowerCapSuccessCase() public {
         vm.prank(minter);
-        // user has already got 10_000 utility token
-        utilityToken.mint(participant2, 75_240 * 1e18);
+        // exchanger has already got 10_000 utility token
+        utilityToken.mint(exchanger, 75_240 * 1e18);
+        vm.prank(exchanger);
+        utilityToken.approve(address(votingPowerExchange), 75_240 * 1e18);
+
         bytes32 nonce = bytes32(0);
         uint256 expirationTime = 3600;
         (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
@@ -544,8 +559,10 @@ contract VotingPowerExchangeTest is Test {
     // At the same time, you can only burn 75_240 utility token which matches the 99 voting power token's burning amount to get the gov token itself.
     function testExchangeTwiceToCrossVotingPowerCapFailureCase() public {
         vm.prank(minter);
-        // user has already got 10_000 utility token
-        utilityToken.mint(participant2, 105_240 * 1e18);
+        // exchanger has already got 10_000 utility token
+        utilityToken.mint(exchanger, 105_240 * 1e18);
+        vm.prank(exchanger);
+        utilityToken.approve(address(votingPowerExchange), 105_240 * 1e18);
         bytes32 nonce = bytes32(0);
         uint256 expirationTime = 3600;
         (bytes memory signature,) = helper.generateSignatureFromPrivateKey(
@@ -560,7 +577,7 @@ contract VotingPowerExchangeTest is Test {
         // check result of this:
         // Participant2 receives 99 governance tokens, has 115_240 * 1e18 - 75_240 * 1e18 utility tokens remaining,
         // has burned 75_240 utility tokens, and uses a specific nonce, which is used, so the authorization state should be true
-        // Participant has burned 0 utility token
+        // exchanger has burned 0 utility token
         checkExchangeResult(
             participant2, 99 * 1e18, 115_240 * 1e18 - 75_240 * 1e18, 75_240 * 1e18, participant, 0, nonce, true
         );
@@ -740,7 +757,7 @@ contract VotingPowerExchangeTest is Test {
         bool expectedAuthorizationState
     ) internal view {
         assertEq(govToken.balanceOf(user10), expectedGovTokenBalance);
-        assertEq(utilityToken.balanceOf(user10), expectedUtilityTokenBalance);
+        assertEq(utilityToken.balanceOf(exchanger), expectedUtilityTokenBalance);
         assertEq(govToken.burnedAmountOfUtilToken(user10), expectedBurnedAmount);
         assertEq(govToken.burnedAmountOfUtilToken(address(user20)), expectedBurnedAmount2);
         assertTrue(votingPowerExchange.authorizationState(user10, nonce) == expectedAuthorizationState);

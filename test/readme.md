@@ -170,7 +170,7 @@ Exchange tests
 - testExchangeMediumAmountSuccessCase
 - testExchangeSmallAmountSuccessCase
 - testExchangeLargeAmountSuccessCase
-- testExchangeVotingPowerCapSuccessCase
+- testExchangeReachingVotingPowerCapSuccessCase
 - testExchangeTwiceToGetToVotingPowerCapSuccessCase
 - testExchangeTwiceToCrossVotingPowerCapFailureCase
 - testExchangeFailsWhenSenderIsZeroAddress

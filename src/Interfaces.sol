@@ -6,6 +6,8 @@ pragma solidity 0.8.24;
 interface IERC20UpgradeableTokenV1 {
     function mint(address account, uint256 amount) external;
     function burnByBurner(address account, uint256 amount) external;
+    function approve(address spender, uint256 amount) external;
+    function transferFrom(address sender, address recipient, uint256 amount) external;
 }
 
 interface IGovToken {
