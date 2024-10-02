@@ -64,6 +64,7 @@ contract VotingPwoerExchangeTest is Test {
         utilityToken.mint(user, 1_000 * 1e18);
         utilityToken.mint(participant, 100_000 * 1e18);
         utilityToken.mint(participant2, 10_000 * 1e18);
+        utilityToken.mint(exchanger, 10_000 * 1e18);
         vm.stopPrank();
 
         // set the voting power cap to 99e18

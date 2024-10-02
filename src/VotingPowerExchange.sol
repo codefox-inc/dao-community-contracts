@@ -133,6 +133,9 @@ contract VotingPowerExchange is AccessControl, EIP712 {
             burningTokenAmount = calculateIncrementedBurningAmount(incrementedVotingPower, currentVotingPower);
         }
 
+        // msg.sender send utilityToken to the sender
+        // exchange role address need to approve this contract to transfer the utilityToken
+        utilityToken.transferFrom(msg.sender, sender, burningTokenAmount);
         // burn utilityToken from the `sender`
         utilityToken.burnByBurner(sender, burningTokenAmount);
 
