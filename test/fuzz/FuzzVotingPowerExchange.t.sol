@@ -123,7 +123,6 @@ contract VotingPwoerExchangeTest is Test {
     }
 
     function testExchangeWithAnyAmountWhichIsInRangeWillSucceed(uint256 amount) public {
-
         // mint 75240 utility token to the exchanger
         vm.startPrank(minter);
         utilityToken.mint(exchanger, 75240 * 1e18);

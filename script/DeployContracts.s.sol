@@ -182,6 +182,13 @@ contract DeployContracts is Script {
         utilityToken.grantRole(utilityToken.BURNER_ROLE(), address(votingPowerExchange));
         // give defender the exchanger role
         votingPowerExchange.grantRole(votingPowerExchange.EXCHANGER_ROLE(), defender);
+
+        // give exchanger some utility token
+        utilityToken.mint(exchanger, 10_000 * 1e18);
+        // exchanger should approve the votingPowerExchange to spend the utility token
+        // here exchanger is deployer so we do this directly
+        // change this method when exchanger is not deployer
+        utilityToken.approve(address(votingPowerExchange), 10_000 * 1e18);
         vm.stopBroadcast();
 
         return DeploymentResult({

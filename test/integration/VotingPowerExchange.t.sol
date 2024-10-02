@@ -491,7 +491,7 @@ contract VotingPowerExchangeTest is Test {
         vm.prank(minter);
         // exchanger has already got 10_000 utility token
         utilityToken.mint(exchanger, 65_300 * 1e18);
-        // approve 
+        // approve
         vm.startPrank(exchanger);
         utilityToken.approve(address(votingPowerExchange), 75_300 * 1e18);
 
