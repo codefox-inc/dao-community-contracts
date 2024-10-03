@@ -47,7 +47,7 @@ The system is managed by different roles. The roles are managed by the default a
 - MANAGER_ROLE:
   - Responsibilities: Can manage the contract and call some special functions.
   - Functions: `setVotingPowerCap()`
-- EXCHANGER_ROLE: Exchanger role is the role that can exchange the governance token for the utility token.
+- EXCHANGER_ROLE: Exchanger role is the role that can exchange the governance token for the utility token. This role holds the utility token on behalf of the user on the web2 side.
   - Responsibilities: Can exchange the governance token for the utility token.
   - Functions: `exchange()`
 - MINTER_ROLE: The minter role is the role that can mint new tokens.
@@ -463,8 +463,9 @@ y: burnedToken
 1. All contracts must be deployed. After that we can connect it from the web2 side.
    1. What Phase 1 looks like is as the image below.
 2. The main function which needs to be called by relayer on behalf of the user is the `exchange()` function.
-   1. In order to call it, the user needs to generate his own signature by signing with his private keys.
-   2. The trusted relayer will then call the function with the signed message. Gas fee will be paid by the relayer instead of the user.
+   1. There is an exchanger role who is responsible for calling the `exchange()` function. He holds the utility token and the exchanger role in the votingPowerExchange contract. The exchanger holds the utility token on behalf of the user, so the exchanger will call the `exchange()` function using the signature of the user and send the token to the user to be used to mint the gov token in one transaction.
+   2. In order to call it, the user needs to generate his own signature by signing with his private keys.
+   3. The trusted relayer will then call the function with the signed message. Gas fee will be paid by the relayer instead of the user.
 3. Some of the data is stored in the contract in nature. But the dev can decide if they want to store the data also in DB or not.
 4. Some accounts with special roles are initialized in the contract in the beginning. Needless to say, the accounts with special roles are supposed to be handled very carefully.
 
