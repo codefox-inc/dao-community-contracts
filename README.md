@@ -283,6 +283,8 @@ The tests are written in the `test/` directory. And it consists of the following
 
 More information about the tests is written in the `test/readme.md`. Please refer to it for more details about the tests.
 
+The test coverage is 100% for the main contracts.
+
 ## How to Start
 
 1. Clone the repository
