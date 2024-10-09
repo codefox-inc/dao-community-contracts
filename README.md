@@ -4,6 +4,8 @@ This is a repository for the smart contracts of the DAO community. The smart con
 
 ## Introduction
 
+DAO community contracts are public goods for community governance. They record the social capital of community participants and can be used to represent membership, manage voting power, and oversee governance within the community. The protocol is designed to publicly and transparently record the achievements of community participants, while also allowing composability with other on-chain protocols. This opens new opportunities for managing and governing communities. When used properly, the protocol can bring significant benefits to both the community as a whole and its individual participants.
+
 This is a repository for the smart contracts of the DAO community governance, which is some basic tools for the community.
 There are separated tools for the community governance. It will be explained here based on the smart contracts.
 
