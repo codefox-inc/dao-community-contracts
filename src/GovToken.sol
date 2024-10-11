@@ -36,7 +36,6 @@ contract GovToken is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vote
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(MINTER_ROLE, minter);
         _grantRole(BURNER_ROLE, burner);
-        _grantRole(BURNER_ROLE, burner);
         // votingPowerExchange role is supposed to be only granted to VotingPowerExchange contract
         _grantRole(VOTING_POWER_EXCHANGE_ROLE, votingPowerExchange);
     }

@@ -7,7 +7,9 @@ import {console, Script} from "forge-std/Script.sol";
 import {AmbassadorNft} from "src/AmbassadorNft.sol";
 
 contract DeployNft is Script {
-    function setUp() public {
+    function run() public {
         vm.startBroadcast();
+
+        vm.stopBroadcast();
     }
 }

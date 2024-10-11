@@ -20,8 +20,6 @@ contract VotingPowerExchange is AccessControl, EIP712 {
 
     // Errors
     error VotingPowerExchange__DefaultAdminCannotBeZero();
-    error VotingPowerExchange__AmountIsZero();
-    error VotingPowerExchange__HighestIdIsTooHigh();
     error VotingPowerExchange__AddressIsZero();
     error VotingPowerExchange__GovOrUtilAddressIsZero();
     error VotingPowerExchange__AmountIsTooSmall();
@@ -44,7 +42,6 @@ contract VotingPowerExchange is AccessControl, EIP712 {
     bytes32 public constant EXCHANGER_ROLE = keccak256("EXCHANGER_ROLE");
     // PRECISION values for the calculation
     uint256 private constant PRECISION_FIX = 1e9;
-    uint256 private constant PRECISION_FACTOR = 10;
     uint256 private constant PRECISION = 1e18;
     uint256 private constant ALLOWED_EXCHANGING_MINIMUM_AMOUNT = 1e18;
 
@@ -261,14 +258,12 @@ contract VotingPowerExchange is AccessControl, EIP712 {
         returns (
             bytes32 __EXCHANGE_TYPEHASH,
             uint256 _PRECISION_FIX,
-            uint256 _PRECISION_FACTOR,
             uint256 _PRECISION,
             uint256 _ALLOWED_EXCHANGING_MINIMUM_AMOUNT
         )
     {
         __EXCHANGE_TYPEHASH = _EXCHANGE_TYPEHASH;
         _PRECISION_FIX = PRECISION_FIX;
-        _PRECISION_FACTOR = PRECISION_FACTOR;
         _PRECISION = PRECISION;
         _ALLOWED_EXCHANGING_MINIMUM_AMOUNT = ALLOWED_EXCHANGING_MINIMUM_AMOUNT;
     }
