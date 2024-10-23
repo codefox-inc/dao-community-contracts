@@ -41,3 +41,6 @@ endif
 
 deploy:
 	@forge clean && forge script script/DeployContracts.s.sol:DeployContracts $(NETWORK_ARGS)
+
+deploy-nft:
+	@forge clean && forge script script/DeployNft.s.sol:DeployNft $(NETWORK_ARGS)

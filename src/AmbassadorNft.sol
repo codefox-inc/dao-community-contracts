@@ -69,7 +69,7 @@ contract AmbassadorNft is ERC1155, AccessControl, ERC1155Burnable {
         _burn(account, id, amount);
     }
 
-    /// @notice Batch burning is not supported.
+    /// @notice Batch burning is supported only by the BURNER_ROLE.
     function burnBatch(address account, uint256[] memory ids, uint256[] memory values)
         public
         virtual

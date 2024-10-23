@@ -325,6 +325,18 @@ make test
 make coverage
 ```
 
+7. Deploy the contracts on the base sepolia network by running
+
+```shell
+make deploy ARGS="--network basesepolia"
+```
+
+8. Deploy the nft contract on the base sepolia network by running
+
+```shell
+make deploy-nft ARGS="--network basesepolia"
+```
+
 ## References
 
 ### Mathematical Formula and tables
