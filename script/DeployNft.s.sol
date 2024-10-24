@@ -17,12 +17,7 @@ contract DeployNft is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        AmbassadorNft nft = new AmbassadorNft(
-            admin,
-            minter,
-            burner,
-            uriSetter
-        );
+        AmbassadorNft nft = new AmbassadorNft(admin, minter, burner, uriSetter);
 
         console.log("Deployer:", deployer);
         console.log("AmbassadorNft deployed at:", address(nft));
