@@ -149,7 +149,7 @@ contract DeployContracts is Script {
         manager = deployer;
         exchanger = deployer;
         upgrader = deployer;
-        defender = vm.envAddress("OPENZEPPELIN_DEFENDER_ADDR");
+        defender = vm.envAddress("TESTNET_OPENZEPPELIN_DEFENDER_ADDR");
 
         vm.startBroadcast(privateKey);
         // deploy the utility token using the OpenZeppelin Upgrades library

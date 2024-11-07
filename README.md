@@ -486,3 +486,16 @@ y: burnedToken
 <div style="text-align: center;">
   <img src="./images/phaseOneImage.png" alt="フェーズ1" width="80%"/>
 </div>
+
+### Some more notes for the deployment
+
+- When setting up the system, we need to:
+
+  - Deploy the contracts.
+  - Set up the defender.
+  - Mint enough token for defender. The default minting amount is 0 after the deployment.
+  - Make the defender approve the amount needed for the contracts to use.
+
+- When doing the deployment, we need to set the name and symbol of the utility token.
+- The name and symbol of the gov token is fixed.
+- The default admin of the contracts is the deployer himself.

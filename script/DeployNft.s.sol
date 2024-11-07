@@ -7,7 +7,7 @@ import {AmbassadorNft} from "src/AmbassadorNft.sol";
 
 contract DeployNft is Script {
     function run() public {
-        address defender = vm.envAddress("OPENZEPPELIN_DEFENDER_ADDR");
+        address defender = vm.envAddress("TESTNET_OPENZEPPELIN_DEFENDER_ADDR");
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOYER");
         address deployer = vm.addr(deployerPrivateKey);
         address admin = deployer;
