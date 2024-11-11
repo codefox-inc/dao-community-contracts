@@ -41,14 +41,6 @@ contract GrantRolesContract is Script {
         address exchangeAddr
     ) public {
         uint256 privateKey = vm.envUint("PRIVATE_KEY_DEPLOYER");
-        // testnet we set all of the roles as deployer
-        // admin = targetAddr;
-        // pauser = targetAddr;
-        // minter = targetAddr;
-        // burner = targetAddr;
-        // manager = targetAddr;
-        // exchanger = targetAddr;
-        // upgrader = targetAddr;
 
         //// start calling onchain functions ////
         vm.startBroadcast(privateKey);
