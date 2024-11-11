@@ -34,7 +34,12 @@ contract GrantRolesContract is Script {
     }
 
     // deploy the contracts on the base sepolia network for testing
-    function grantRolesToTargetAddress(address targetAddr, address utilityTokenAddr, address govTokenAddr, address exchangeAddr) public {
+    function grantRolesToTargetAddress(
+        address targetAddr,
+        address utilityTokenAddr,
+        address govTokenAddr,
+        address exchangeAddr
+    ) public {
         uint256 privateKey = vm.envUint("PRIVATE_KEY_DEPLOYER");
         // testnet we set all of the roles as deployer
         // admin = targetAddr;
