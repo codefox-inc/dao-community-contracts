@@ -331,7 +331,11 @@ make coverage
 make deploy ARGS="--network basesepolia"
 ```
 
-8. Deploy the nft contract on the base sepolia network by running
+```shell
+make deploy ARGS="--network basemainnet"
+```
+
+1. Deploy the nft contract on the base sepolia network by running
 
 ```shell
 make deploy-nft ARGS="--network basesepolia"
