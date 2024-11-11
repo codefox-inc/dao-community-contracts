@@ -44,3 +44,6 @@ deploy:
 
 deploy-nft:
 	@forge clean && forge script script/DeployNft.s.sol:DeployNft $(NETWORK_ARGS)
+
+grant-roles:
+	@forge clean && forge script script/GrantRoles.s.sol:GrantRolesContract $(NETWORK_ARGS)
