@@ -167,22 +167,14 @@ contract DeployContracts is Script {
         // give exchange the voting power exchange role of govToken
         govToken.grantRole(govToken.VOTING_POWER_EXCHANGE_ROLE(), address(votingPowerExchange));
 
-        // give exchange the minter role of govToken
-        // govToken.grantRole(govToken.MINTER_ROLE(), address(votingPowerExchange));
-        // give exchange the burner role of utilityToken
-        // utilityToken.grantRole(utilityToken.BURNER_ROLE(), address(votingPowerExchange));
         // give defender the exchanger role
         votingPowerExchange.grantRole(votingPowerExchange.EXCHANGER_ROLE(), defender);
 
-        // give exchanger some utility token
-        // utilityToken.mint(exchanger, 10_000 * 1e18);
-        // exchanger should approve the votingPowerExchange to spend the utility token
-        // here exchanger is deployer so we do this directly
-        // change this method when exchanger is not deployer
-        // utilityToken.approve(address(votingPowerExchange), 10_000 * 1e18);
+        // give defender as exchanger some utility token
+        utilityToken.mint(defender, 100_000 * 1e18);
         // NOTE: should let the outside exchanger to approve the exchange token.
         // NOTE: And the exchanger address should hold some utility token for calling exchange function. (not needed anymore)
-        // NOTE: the defender is now holding the utility token
+        // NOTE: the defender is now holding the utility token so he is the exchanger now
         vm.stopBroadcast();
 
         return DeploymentResult({
@@ -267,7 +259,7 @@ contract DeployContracts is Script {
         vm.stopBroadcast();
         // NOTE: should let the outside exchanger to approve the exchange token.
         // NOTE: And the exchanger address should hold some utility token for calling exchange function. (not needed anymore)
-        // NOTE: the defender is now holding the utility token
+        // NOTE: the defender is now holding the utility token so he is the exchanger now
 
         return DeploymentResult({
             utilityToken: address(utilityToken),
